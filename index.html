@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SMDC Travels — E-Ticketing for Buses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* palette — deep saffron/marigold primary, navy ink, cream surfaces */
+    --saffron: #e8822b;
+    --saffron-dark: #c86914;
+    --marigold: #f3a712;
+    --navy: #1b2a4a;
+    --navy-ink: #10192e;
+    --cream: #fdf7ee;
+    --surface: #ffffff;
+    --surface-alt: #f7efe2;
+    --accent: #2e8b8b;      /* teal accent */
+    --text: #22272e;
+    --text-soft: #5a6472;
+    --border: #e7dcc9;
+    --ok: #2e7d4f;
+    --ok-bg: #e5f3ea;
+    --warn: #b8860b;
+    --warn-bg: #fbf2d8;
+    --danger: #b3321f;
+    --danger-bg: #fbe7e2;
+    --held: #c57c1f;
+    --held-bg: #fcefd8;
+    /* spacing scale */
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+    /* radii */
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
+    --shadow: 0 2px 8px rgba(27,42,74,.08), 0 8px 24px rgba(27,42,74,.06);
+    --shadow-lg: 0 10px 40px rgba(27,42,74,.18);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--cream);
+    line-height: 1.5;
+  }
+  h1,h2,h3,h4 { font-family: 'Poppins', sans-serif; color: var(--navy); margin: 0 0 var(--s3); line-height: 1.2; }
+  h1 { font-size: 1.9rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.1rem; }
+  a { color: var(--saffron-dark); }
+  button { font-family: inherit; cursor: pointer; }
+  input, select { font-family: inherit; font-size: 1rem; }
+
+  /* ---- banner ---- */
+  .proto-banner {
+    background: var(--navy-ink); color: #ffd9a8; text-align: center;
+    font-size: .8rem; padding: var(--s2) var(--s4); letter-spacing: .02em;
+  }
+  .proto-banner strong { color: var(--marigold); }
+
+  /* ---- header / nav ---- */
+  header.site {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 40; box-shadow: var(--shadow);
+  }
+  .nav {
+    max-width: 1100px; margin: 0 auto; padding: var(--s3) var(--s4);
+    display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: var(--s2); text-decoration: none; }
+  .brand .mark {
+    width: 40px; height: 40px; border-radius: var(--r-md);
+    background: linear-gradient(135deg, var(--saffron), var(--marigold));
+    display: grid; place-items: center; color: #fff; font-family: 'Poppins';
+    font-weight: 700; font-size: 1.2rem; box-shadow: var(--shadow);
+  }
+  .brand .name { font-family: 'Poppins'; font-weight: 700; color: var(--navy); font-size: 1.25rem; line-height: 1; }
+  .brand .tag { font-size: .68rem; color: var(--text-soft); letter-spacing: .08em; text-transform: uppercase; }
+  .nav-links { margin-left: auto; display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+  .nav-links button, .nav-links a.navbtn {
+    background: transparent; border: none; color: var(--navy); font-weight: 600;
+    padding: var(--s2) var(--s3); border-radius: var(--r-sm); font-size: .92rem; text-decoration: none;
+  }
+  .nav-links button:hover, .nav-links a.navbtn:hover { background: var(--surface-alt); }
+  .nav-links button.active { background: var(--saffron); color: #fff; }
+  .userchip {
+    display: flex; align-items: center; gap: var(--s2); background: var(--surface-alt);
+    padding: var(--s1) var(--s3); border-radius: var(--r-pill); font-size: .85rem; font-weight: 600;
+  }
+  .userchip .role {
+    font-size: .68rem; text-transform: uppercase; background: var(--navy); color: #fff;
+    padding: 1px 7px; border-radius: var(--r-pill); letter-spacing: .04em;
+  }
+
+  /* ---- layout ---- */
+  main { max-width: 1100px; margin: 0 auto; padding: var(--s5) var(--s4) var(--s7); }
+  .view { display: none; }
+  .view.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+
+  /* ---- hero ---- */
+  .hero {
+    background: linear-gradient(135deg, var(--navy), var(--navy-ink));
+    color: #fff; border-radius: var(--r-lg); padding: var(--s7) var(--s5);
+    margin-bottom: var(--s5); position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content:""; position:absolute; right:-60px; top:-60px; width:260px; height:260px;
+    background: radial-gradient(circle, var(--saffron), transparent 70%); opacity:.5;
+  }
+  .hero h1 { color: #fff; font-size: 2.3rem; max-width: 620px; }
+  .hero p { color: #d7dced; max-width: 560px; margin: var(--s3) 0 0; }
+  .hero .cta { margin-top: var(--s5); display:flex; gap: var(--s3); flex-wrap: wrap; }
+
+  /* ---- buttons ---- */
+  .btn {
+    display: inline-flex; align-items: center; gap: var(--s2); justify-content: center;
+    border: none; border-radius: var(--r-sm); padding: var(--s3) var(--s5);
+    font-weight: 600; font-size: .95rem; transition: transform .08s, box-shadow .15s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: linear-gradient(135deg, var(--saffron), var(--saffron-dark)); color: #fff; box-shadow: var(--shadow); }
+  .btn-primary:hover { box-shadow: var(--shadow-lg); }
+  .btn-ghost { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+  .btn-outline { background: var(--surface); color: var(--navy); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--saffron); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: var(--s1) var(--s3); font-size: .82rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ---- cards ---- */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--s5); box-shadow: var(--shadow); margin-bottom: var(--s4);
+  }
+  .grid { display: grid; gap: var(--s4); }
+  .grid-2 { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .route-card { display: flex; flex-direction: column; gap: var(--s3); }
+  .route-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--s3); }
+  .route-path { font-family: 'Poppins'; font-weight: 700; color: var(--navy); font-size: 1.15rem; }
+  .route-meta { display: flex; gap: var(--s4); flex-wrap: wrap; font-size: .85rem; color: var(--text-soft); }
+  .route-meta b { color: var(--text); font-weight: 600; }
+  .price-tag { font-family: 'Poppins'; font-weight: 700; color: var(--saffron-dark); font-size: 1.4rem; white-space: nowrap; }
+  .date-row { display: flex; gap: var(--s2); flex-wrap: wrap; }
+  .date-pill {
+    border: 1.5px solid var(--border); background: var(--surface-alt); border-radius: var(--r-sm);
+    padding: var(--s2) var(--s3); font-size: .82rem; cursor: pointer; font-weight: 600; color: var(--navy);
+  }
+  .date-pill:hover { border-color: var(--saffron); }
+  .date-pill .seats { display:block; font-size:.7rem; color: var(--text-soft); font-weight: 500; }
+
+  /* ---- badges / pills ---- */
+  .pill { display:inline-flex; align-items:center; gap:4px; padding: 2px 10px; border-radius: var(--r-pill); font-size:.72rem; font-weight:700; text-transform: uppercase; letter-spacing: .03em; }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .pill.pending { background: var(--warn-bg); color: var(--warn); }
+  .pill.fail { background: var(--danger-bg); color: var(--danger); }
+  .pill.cancel { background: #eceff3; color: var(--text-soft); }
+  .pill.held { background: var(--held-bg); color: var(--held); }
+
+  /* ---- seat map ---- */
+  .seatmap-wrap { display: grid; grid-template-columns: 1fr; gap: var(--s5); }
+  @media (min-width: 760px) { .seatmap-wrap { grid-template-columns: 1.3fr 1fr; } }
+  .bus {
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--s5); max-width: 420px; margin: 0 auto; width: 100%;
+  }
+  .bus .front { text-align: center; font-size:.72rem; letter-spacing:.1em; color: var(--text-soft); text-transform: uppercase; margin-bottom: var(--s4); border-bottom: 2px dashed var(--border); padding-bottom: var(--s3); }
+  .seat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s2); }
+  .aisle { grid-column: 3; }
+  .seat {
+    aspect-ratio: 1; border-radius: var(--r-sm); border: 1.5px solid var(--border);
+    background: var(--surface); font-size: .72rem; font-weight: 700; color: var(--navy);
+    display:grid; place-items:center; transition: transform .06s;
+  }
+  .seat:hover:not(:disabled) { transform: scale(1.06); border-color: var(--saffron); }
+  .seat.available { background:#fff; }
+  .seat.selected { background: var(--accent); color:#fff; border-color: var(--accent); }
+  .seat.held { background: var(--held-bg); color: var(--held); border-color: var(--held); cursor:not-allowed; }
+  .seat.mine-held { background: var(--marigold); color:#fff; border-color: var(--saffron-dark); }
+  .seat.booked { background: var(--navy); color:#fff; border-color: var(--navy); cursor:not-allowed; opacity:.7; }
+  .seat:disabled { cursor: not-allowed; }
+  .legend { display:flex; gap: var(--s4); flex-wrap: wrap; font-size:.8rem; margin-top: var(--s5); }
+  .legend .swatch { display:inline-block; width:16px; height:16px; border-radius:4px; vertical-align:-3px; margin-right:6px; border:1px solid var(--border); }
+  .sw-avail { background:#fff; }
+  .sw-sel { background: var(--accent); }
+  .sw-held { background: var(--held-bg); border-color: var(--held); }
+  .sw-booked { background: var(--navy); }
+
+  .hold-timer {
+    display:inline-flex; align-items:center; gap: var(--s2); background: var(--warn-bg); color: var(--warn);
+    font-weight: 700; padding: var(--s2) var(--s4); border-radius: var(--r-pill); font-size: .9rem;
+  }
+  .hold-timer.urgent { background: var(--danger-bg); color: var(--danger); }
+
+  /* ---- forms ---- */
+  .form-row { margin-bottom: var(--s4); }
+  label.field { display:block; font-weight:600; font-size:.85rem; color: var(--navy); margin-bottom: var(--s2); }
+  .form-row input, .form-row select {
+    width: 100%; padding: var(--s3); border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--text);
+  }
+  .form-row input:focus, .form-row select:focus, .seat:focus-visible, .btn:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 3px solid rgba(232,130,43,.4); outline-offset: 2px;
+  }
+  .err-msg { color: var(--danger); font-size: .8rem; margin-top: var(--s1); display:block; min-height: 1em; }
+  .form-help { font-size:.8rem; color: var(--text-soft); margin-top: var(--s1); }
+
+  /* ---- auth layout ---- */
+  .auth-wrap { display:grid; gap: var(--s5); max-width: 820px; margin: 0 auto; }
+  @media (min-width: 720px){ .auth-wrap { grid-template-columns: 1fr 1fr; align-items:start; } }
+  .cred-card { background: var(--surface-alt); border:1px dashed var(--saffron); border-radius: var(--r-lg); padding: var(--s5); }
+  .cred-card h3 { color: var(--saffron-dark); }
+  .cred-row { font-size:.85rem; margin-bottom: var(--s2); }
+  .cred-row code { background:#fff; padding:1px 6px; border-radius:4px; border:1px solid var(--border); font-size:.82rem; }
+
+  /* ---- tables ---- */
+  table { width:100%; border-collapse: collapse; font-size:.88rem; }
+  th, td { text-align:left; padding: var(--s3); border-bottom: 1px solid var(--border); }
+  th { font-family:'Poppins'; color: var(--navy); font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+  tr:hover td { background: var(--surface-alt); }
+  .table-scroll { overflow-x: auto; }
+
+  /* ---- tabs (role dashboards) ---- */
+  .subtabs { display:flex; gap: var(--s2); border-bottom: 2px solid var(--border); margin-bottom: var(--s5); flex-wrap: wrap; }
+  .subtabs button {
+    background: none; border:none; padding: var(--s3) var(--s4); font-weight:600; color: var(--text-soft);
+    border-bottom: 3px solid transparent; margin-bottom:-2px;
+  }
+  .subtabs button.active { color: var(--saffron-dark); border-bottom-color: var(--saffron); }
+
+  /* ---- inbox ---- */
+  .mail { border:1px solid var(--border); border-radius: var(--r-md); padding: var(--s4); margin-bottom: var(--s3); background: var(--surface); }
+  .mail .subj { font-weight:700; color: var(--navy); }
+  .mail .from { font-size:.78rem; color: var(--text-soft); }
+  .mail .body { font-size:.88rem; margin-top: var(--s2); white-space: pre-line; }
+  .mail.unread { border-left: 4px solid var(--saffron); }
+
+  /* ---- toasts ---- */
+  #toasts { position: fixed; bottom: var(--s5); right: var(--s5); z-index: 100; display:flex; flex-direction:column; gap: var(--s3); max-width: 360px; }
+  .toast {
+    background: var(--navy-ink); color:#fff; padding: var(--s4); border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg); font-size:.9rem; animation: slideIn .25s ease; border-left: 4px solid var(--saffron);
+  }
+  .toast.ok { border-left-color: var(--ok); }
+  .toast.err { border-left-color: var(--danger); }
+  .toast.warn { border-left-color: var(--warn); }
+  @keyframes slideIn { from { transform: translateX(120%);} to {transform:none;} }
+
+  /* ---- modal ---- */
+  .modal-bg { position: fixed; inset:0; background: rgba(16,25,46,.55); display:none; place-items:center; z-index:90; padding: var(--s4); }
+  .modal-bg.open { display:grid; }
+  .modal { background: var(--surface); border-radius: var(--r-lg); padding: var(--s6); max-width: 440px; width:100%; box-shadow: var(--shadow-lg); }
+
+  .section-head { display:flex; justify-content: space-between; align-items:center; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s4); }
+  .muted { color: var(--text-soft); font-size:.85rem; }
+  .toggle-row { display:flex; align-items:center; gap: var(--s3); background: var(--warn-bg); border:1px solid var(--marigold); border-radius: var(--r-md); padding: var(--s3) var(--s4); margin-bottom: var(--s4); }
+  .toggle-row label { font-weight:600; font-size:.88rem; }
+  .refresh-ind { font-size:.8rem; color: var(--text-soft); }
+  .refresh-ind .dot { display:inline-block; width:8px; height:8px; background: var(--ok); border-radius:50%; margin-right:5px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .empty { text-align:center; padding: var(--s7); color: var(--text-soft); }
+  .stat-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: var(--s4); }
+  .stat { background: var(--surface-alt); border-radius: var(--r-md); padding: var(--s4); }
+  .stat .n { font-family:'Poppins'; font-weight:700; font-size:1.6rem; color: var(--saffron-dark); }
+  .stat .l { font-size:.78rem; color: var(--text-soft); text-transform:uppercase; letter-spacing:.03em; }
+  .inline-note { background: var(--surface-alt); border-radius: var(--r-md); padding: var(--s3) var(--s4); font-size:.85rem; margin: var(--s3) 0; }
+  .seat-chips { display:flex; gap: var(--s2); flex-wrap: wrap; }
+  .seat-chip { background: var(--accent); color:#fff; border-radius: var(--r-sm); padding: 2px 10px; font-size:.8rem; font-weight:600; }
+  .footer { text-align:center; padding: var(--s6); color: var(--text-soft); font-size:.8rem; }
+</style>
+</head>
+<body>
+<div class="proto-banner" role="note">UI prototype — <strong>bank &amp; email are simulated</strong>. No real payments or messages are sent.</div>
+
+<header class="site">
+  <nav class="nav" aria-label="Primary">
+    <a href="#top" class="brand" id="brandHome">
+      <span class="mark" aria-hidden="true">S</span>
+      <span>
+        <span class="name">SMDC Travels</span><br />
+        <span class="tag">Bus E-Ticketing</span>
+      </span>
+    </a>
+    <div class="nav-links" id="navLinks" role="menubar"></div>
+  </nav>
+</header>
+
+<a id="top"></a>
+<main>
+  <!-- ======================= BROWSE (public) ======================= -->
+  <section id="view-browse" class="view active" aria-label="Browse schedules">
+    <div class="hero">
+      <h1>Book bus tickets across India — in a few taps.</h1>
+      <p>Compare routes, pick your date and time, choose your seat on a live seat map, and pay securely. SMDC Travels connects the cities you travel most.</p>
+      <div class="cta">
+        <button class="btn btn-primary" id="heroBrowse">Browse schedules</button>
+        <button class="btn btn-ghost" id="heroLogin">Log in to book</button>
+      </div>
+    </div>
+    <div class="section-head">
+      <h2>Available schedules</h2>
+      <span class="muted">Prices in Indian Rupees (₹). Seats remaining shown live.</span>
+    </div>
+    <div id="routeList" class="grid grid-2"></div>
+  </section>
+
+  <!-- ======================= LOGIN ======================= -->
+  <section id="view-login" class="view" aria-label="Log in">
+    <div class="auth-wrap">
+      <div class="card">
+        <h2>Log in</h2>
+        <form id="loginForm" novalidate>
+          <div class="form-row">
+            <label class="field" for="li-email">Email</label>
+            <input id="li-email" type="email" autocomplete="email" />
+            <span class="err-msg" id="li-email-err"></span>
+          </div>
+          <div class="form-row">
+            <label class="field" for="li-pass">Password</label>
+            <input id="li-pass" type="password" autocomplete="current-password" />
+            <span class="err-msg" id="li-pass-err"></span>
+          </div>
+          <button class="btn btn-primary" type="submit" style="width:100%">Log in</button>
+        </form>
+        <p class="form-help">No account? <a href="#" id="toRegister">Register here</a>.</p>
+      </div>
+      <div class="cred-card">
+        <h3>Demo credentials</h3>
+        <p class="muted" style="margin-top:0">Click any row to auto-fill, then press Log in.</p>
+        <div class="cred-row" data-email="customer@smdc.test" data-pass="Travel@123"><b>Customer</b> &nbsp;<code>customer@smdc.test</code> / <code>Travel@123</code></div>
+        <div class="cred-row" data-email="manager@smdc.test" data-pass="Manage@123"><b>Manager</b> &nbsp;<code>manager@smdc.test</code> / <code>Manage@123</code></div>
+        <div class="cred-row" data-email="admin@smdc.test" data-pass="Admin@123"><b>Admin</b> &nbsp;<code>admin@smdc.test</code> / <code>Admin@123</code></div>
+        <hr style="border:none;border-top:1px dashed var(--saffron);margin:var(--s4) 0" />
+        <div class="cred-row">Demo payment PIN: <code>4321</code></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= REGISTER ======================= -->
+  <section id="view-register" class="view" aria-label="Register">
+    <div class="card" style="max-width:520px;margin:0 auto">
+      <h2>Create your account</h2>
+      <form id="regForm" novalidate>
+        <div class="form-row">
+          <label class="field" for="rg-name">Full name</label>
+          <input id="rg-name" type="text" autocomplete="name" />
+          <span class="err-msg" id="rg-name-err"></span>
+        </div>
+        <div class="form-row">
+          <label class="field" for="rg-email">Email</label>
+          <input id="rg-email" type="email" autocomplete="email" />
+          <span class="err-msg" id="rg-email-err"></span>
+        </div>
+        <div class="form-row">
+          <label class="field" for="rg-gov">Government ID (e.g. Aadhaar / Passport no.)</label>
+          <input id="rg-gov" type="text" />
+          <span class="err-msg" id="rg-gov-err"></span>
+        </div>
+        <div class="form-row">
+          <label class="field" for="rg-pass">Password</label>
+          <input id="rg-pass" type="password" autocomplete="new-password" />
+          <span class="form-help">At least 8 characters, with a letter and a number.</span>
+          <span class="err-msg" id="rg-pass-err"></span>
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%">Register</button>
+      </form>
+      <p class="form-help">Already registered? <a href="#" id="toLogin">Log in</a>.</p>
+    </div>
+  </section>
+
+  <!-- ======================= SEAT SELECTION / BOOKING ======================= -->
+  <section id="view-booking" class="view" aria-label="Select seats">
+    <button class="btn btn-outline btn-sm" id="backToBrowse" style="margin-bottom:var(--s4)">&larr; Back to schedules</button>
+    <div class="card">
+      <div class="section-head">
+        <div>
+          <h2 id="bk-title">Route</h2>
+          <div class="route-meta" id="bk-meta"></div>
+        </div>
+        <div id="bk-timer-wrap"></div>
+      </div>
+      <div class="seatmap-wrap">
+        <div>
+          <div class="bus">
+            <div class="front">Front · Driver</div>
+            <div class="seat-grid" id="seatGrid" role="group" aria-label="Seat map"></div>
+          </div>
+          <div class="legend">
+            <span><span class="swatch sw-avail"></span>Available</span>
+            <span><span class="swatch sw-sel"></span>Selected</span>
+            <span><span class="swatch sw-held"></span>Held (by someone)</span>
+            <span><span class="swatch sw-booked"></span>Booked</span>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="box-shadow:none;margin:0">
+            <h3>Your selection</h3>
+            <div id="bk-selection" class="seat-chips"><span class="muted">No seats selected yet. Tap an available seat to hold it.</span></div>
+            <div class="inline-note" id="bk-total">Total: ₹0</div>
+
+            <h3 style="margin-top:var(--s5)">Payment</h3>
+            <p class="muted" style="margin-top:0">Pay via simulated bank (UPI/Net-banking PIN). Demo PIN hint: <code>4321</code>.</p>
+            <div class="toggle-row">
+              <input type="checkbox" id="bankDown" />
+              <label for="bankDown">Simulate bank API down (demonstrates PENDING path)</label>
+            </div>
+            <div class="form-row">
+              <label class="field" for="pay-pin">Bank PIN</label>
+              <input id="pay-pin" type="password" inputmode="numeric" maxlength="4" placeholder="4-digit PIN" />
+              <span class="err-msg" id="pay-pin-err"></span>
+            </div>
+            <button class="btn btn-primary" id="payBtn" style="width:100%" disabled>Pay &amp; confirm booking</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= MY BOOKINGS (customer) ======================= -->
+  <section id="view-bookings" class="view" aria-label="My bookings">
+    <h2>My bookings</h2>
+    <div id="myBookings"></div>
+  </section>
+
+  <!-- ======================= INBOX ======================= -->
+  <section id="view-inbox" class="view" aria-label="Inbox">
+    <div class="section-head"><h2>Inbox <span class="muted">(simulated email)</span></h2></div>
+    <div id="inboxList"></div>
+  </section>
+
+  <!-- ======================= MANAGER ======================= -->
+  <section id="view-manager" class="view" aria-label="Manager dashboard">
+    <div class="section-head">
+      <h2>Manager dashboard</h2>
+      <span class="refresh-ind" id="mgrRefresh"><span class="dot"></span>Refreshed just now · auto-refreshes every 5 min</span>
+    </div>
+    <div class="subtabs" id="mgrTabs">
+      <button class="active" data-tab="mgr-bookings">Bookings</button>
+      <button data-tab="mgr-schedule">Schedule</button>
+      <button data-tab="mgr-report">Sales report</button>
+    </div>
+    <div id="mgr-bookings" class="mgr-panel"></div>
+    <div id="mgr-schedule" class="mgr-panel" style="display:none"></div>
+    <div id="mgr-report" class="mgr-panel" style="display:none"></div>
+  </section>
+
+  <!-- ======================= ADMIN ======================= -->
+  <section id="view-admin" class="view" aria-label="Admin console">
+    <h2>Admin console</h2>
+    <div class="subtabs" id="admTabs">
+      <button class="active" data-tab="adm-routes">Routes &amp; vehicles</button>
+      <button data-tab="adm-users">User accounts</button>
+      <button data-tab="adm-audit">Audit log</button>
+    </div>
+    <div id="adm-routes" class="adm-panel"></div>
+    <div id="adm-users" class="adm-panel" style="display:none"></div>
+    <div id="adm-audit" class="adm-panel" style="display:none"></div>
+  </section>
+</main>
+
+<div class="footer">
+  SMDC Travels · E-Ticketing prototype · ISM3113 Assignment 6 ·
+  <button class="btn btn-outline btn-sm" id="resetDemo">Reset demo data</button>
+  <br>AI model used: <strong>Qwen3.8-27B — OBLITERATED, Fable 5</strong>
+</div>
+
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <h3 id="modalTitle">Confirm</h3>
+    <p id="modalBody" class="muted"></p>
+    <div style="display:flex;gap:var(--s3);justify-content:flex-end;margin-top:var(--s5)">
+      <button class="btn btn-outline btn-sm" id="modalCancel">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="modalOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   SMDC Travels — E-Ticketing prototype. Single-file, localStorage-backed.
+   ========================================================================= */
+'use strict';
+
+var SEAT_HOLD_MS = 5 * 60 * 1000; // 5 min  (BR-02 / BR-03)
+var DEMO_PIN = '4321';            // IR-01
+var MAX_FAILED = 5;               // SR-03
+var LS_KEY = 'smdc_eticketing_v1';
+var REFRESH_MS = 5 * 60 * 1000;   // NFR-05 manager auto-refresh
+
+/* ---------- PURE LOGIC (also mirrored in selfcheck.js) ---------- */
+// Payment decision table (BR-04, BR-05, IR-01)
+function decidePayment(bankUp, pinCorrect, seatLocked) {
+  if (!seatLocked) return 'EXPIRED';          // hold lapsed -> booking fails
+  if (!bankUp) return 'PENDING';              // bank down -> hold retained
+  if (!pinCorrect) return 'REJECTED';         // wrong PIN -> hold retained, retry
+  return 'CONFIRMED';                          // bank up + correct PIN + locked
+}
+// Seat lock evaluation for a given viewer (BR-03, DR-03)
+function isSeatLocked(seatState, userId, now) {
+  if (!seatState || !seatState.heldUntil) return false;
+  if (seatState.heldUntil <= now) return false;       // expired
+  if (seatState.heldBy === userId) return true;        // my live hold
+  return 'unavailable';                                // held by someone else
+}
+
+/* ---------- STATE ---------- */
+var S = null;
+function nowMs(){ return Date.now(); }
+function uid(){ return 'id' + Math.random().toString(36).slice(2,9); }
+
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+function load(){
+  var raw = localStorage.getItem(LS_KEY);
+  if (raw) { try { S = JSON.parse(raw); return; } catch(e){} }
+  seed();
+}
+
+function todayPlus(d){
+  var dt = new Date(); dt.setHours(0,0,0,0); dt.setDate(dt.getDate()+d);
+  return dt.toISOString().slice(0,10);
+}
+
+function seed(){
+  var routes = [
+    { from:'Mumbai',    to:'Pune',       dur:'2h', price:350, time:'8:00 AM'  },
+    { from:'Delhi',     to:'Jaipur',     dur:'5h', price:650, time:'7:00 AM'  },
+    { from:'Bengaluru', to:'Chennai',    dur:'6h', price:800, time:'9:00 AM'  },
+    { from:'Mumbai',    to:'Nashik',     dur:'3h', price:280, time:'6:30 AM'  },
+    { from:'Hyderabad', to:'Vijayawada', dur:'4h', price:450, time:'8:30 AM'  },
+    { from:'Chennai',   to:'Coimbatore', dur:'5h', price:550, time:'7:30 AM'  }
+  ].map(function(r){
+    return {
+      id: uid(), from:r.from, to:r.to, dur:r.dur, price:r.price, time:r.time,
+      vehicle: 'SMDC-' + Math.floor(1000+Math.random()*8999),
+      seats: 40, active: true,
+      dates: [todayPlus(1), todayPlus(2), todayPlus(3)]
+    };
+  });
+  S = {
+    users: [
+      { id:uid(), name:'Demo Customer', email:'customer@smdc.test', pass:'Travel@123', gov:'XXXX-1111-2222', role:'customer', failed:0, locked:false },
+      { id:uid(), name:'Demo Manager',  email:'manager@smdc.test',  pass:'Manage@123', gov:'XXXX-3333-4444', role:'manager',  failed:0, locked:false },
+      { id:uid(), name:'Demo Admin',    email:'admin@smdc.test',    pass:'Admin@123',  gov:'XXXX-5555-6666', role:'admin',    failed:0, locked:false }
+    ],
+    routes: routes,
+    seatState: {},   // key -> { heldBy, heldUntil }  OR { booked:true, bookingId }
+    bookings: [],    // { id, userId, routeId, date, seats:[], status, total, createdAt }
+    inbox: [],       // simulated emails (global demo inbox)
+    audit: [],       // { user, action, date, time }
+    session: null    // current userId
+  };
+  save();
+}
+
+/* ---------- helpers ---------- */
+function curUser(){ return S.session ? S.users.find(function(u){return u.id===S.session;}) : null; }
+function routeById(id){ return S.routes.find(function(r){return r.id===id;}); }
+function seatKey(routeId, date, time, seat){ return routeId+'|'+date+'|'+time+'|'+seat; }
+function money(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+
+function clockStr(){
+  var d=new Date();
+  return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function dateStr(){ return new Date().toISOString().slice(0,10); }
+
+function audit(action){
+  var u = curUser();
+  S.audit.unshift({ user: u?u.email:'system', action: action, date: dateStr(), time: clockStr() });
+  save();
+}
+
+function pushMail(subject, body){
+  S.inbox.unshift({ id:uid(), subject:subject, body:body, from:'no-reply@smdctravels.in', at: clockStr()+' · '+dateStr(), read:false });
+  save();
+}
+
+/* release any expired holds across seatState (lazy sweep) */
+function sweepHolds(){
+  var t = nowMs(), changed=false;
+  Object.keys(S.seatState).forEach(function(k){
+    var st = S.seatState[k];
+    if (st && st.heldUntil && !st.booked && st.heldUntil <= t) { delete S.seatState[k]; changed=true; }
+  });
+  if (changed) save();
+}
+
+/* seats remaining for a route+date (uses first/only time) (SR-01, FR-04) */
+function seatsRemaining(route, date){
+  sweepHolds();
+  var taken = 0;
+  for (var s=1; s<=route.seats; s++){
+    var st = S.seatState[seatKey(route.id,date,route.time,s)];
+    if (st && (st.booked || (st.heldUntil && st.heldUntil>nowMs()))) taken++;
+  }
+  return route.seats - taken;
+}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+var current = 'browse';
+function show(view){
+  current = view;
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById('view-'+view);
+  if (el) el.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  renderNav();
+  if (view==='browse') renderRoutes();
+  if (view==='bookings') renderMyBookings();
+  if (view==='inbox') renderInbox();
+  if (view==='manager') renderManager();
+  if (view==='admin') renderAdmin();
+}
+
+function renderNav(){
+  var u = curUser();
+  var el = document.getElementById('navLinks');
+  var items = [];
+  items.push(btn('Browse','browse'));
+  if (u){
+    if (u.role==='customer'){ items.push(btn('My bookings','bookings')); items.push(btn('Inbox','inbox', inboxBadge())); }
+    if (u.role==='manager'){ items.push(btn('Dashboard','manager')); items.push(btn('Inbox','inbox', inboxBadge())); }
+    if (u.role==='admin'){ items.push(btn('Admin','admin')); items.push(btn('Inbox','inbox', inboxBadge())); }
+    items.push('<span class="userchip"><span class="role">'+u.role+'</span>'+esc(u.name)+'</span>');
+    items.push('<button data-nav="logout">Log out</button>');
+  } else {
+    items.push(btn('Log in','login'));
+    items.push('<button data-nav="register">Register</button>');
+  }
+  el.innerHTML = items.join('');
+  el.querySelectorAll('[data-nav]').forEach(function(b){
+    b.onclick = function(){
+      var n=b.getAttribute('data-nav');
+      if (n==='logout'){ logout(); }
+      else show(n);
+    };
+  });
+}
+function inboxBadge(){
+  var n = S.inbox.filter(function(m){return !m.read;}).length;
+  return n? ' ('+n+')':'';
+}
+function btn(label,view,extra){
+  return '<button data-nav="'+view+'" class="'+(current===view?'active':'')+'">'+esc(label)+(extra||'')+'</button>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+/* =========================================================================
+   BROWSE  (FR-04, SR-01)
+   ========================================================================= */
+function renderRoutes(){
+  var list = document.getElementById('routeList');
+  var visible = S.routes.filter(function(r){ return r.active; });
+  if (!visible.length){ list.innerHTML = '<div class="empty">No active schedules right now.</div>'; return; }
+  list.innerHTML = visible.map(function(r){
+    var dates = r.dates.map(function(d){
+      var rem = seatsRemaining(r,d);
+      return '<button class="date-pill" data-route="'+r.id+'" data-date="'+d+'">'+fmtDate(d)+
+             '<span class="seats">'+rem+' / '+r.seats+' seats left</span></button>';
+    }).join('');
+    return '<div class="card route-card">'+
+      '<div class="route-head">'+
+        '<div><div class="route-path">'+esc(r.from)+' &rarr; '+esc(r.to)+'</div>'+
+        '<div class="route-meta"><span>Departs <b>'+esc(r.time)+'</b></span><span>Duration <b>'+esc(r.dur)+'</b></span><span>Bus <b>'+esc(r.vehicle)+'</b></span></div></div>'+
+        '<div class="price-tag">'+money(r.price)+'</div>'+
+      '</div>'+
+      '<div><div class="muted" style="margin-bottom:var(--s2)">Pick a travel date:</div><div class="date-row">'+dates+'</div></div>'+
+    '</div>';
+  }).join('');
+  list.querySelectorAll('.date-pill').forEach(function(p){
+    p.onclick = function(){ openBooking(p.getAttribute('data-route'), p.getAttribute('data-date')); };
+  });
+}
+function fmtDate(d){
+  var dt=new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+}
+
+/* =========================================================================
+   BOOKING FLOW  (FR-05, FR-06, DR-03, BR-02/03)
+   ========================================================================= */
+var BK = { routeId:null, date:null, selected:[] };
+var holdInterval = null;
+
+function openBooking(routeId, date){
+  var u = curUser();
+  if (!u){ toast('Please log in to book.','warn'); show('login'); return; }  // book-blocked when logged out
+  if (u.role!=='customer'){ toast('Staff accounts browse only. Log in as a customer to book.','warn'); return; }
+  BK = { routeId:routeId, date:date, selected:[] };
+  var r = routeById(routeId);
+  document.getElementById('bk-title').textContent = r.from+' → '+r.to;
+  document.getElementById('bk-meta').innerHTML =
+    '<span>Date <b>'+fmtDate(date)+'</b></span><span>Departs <b>'+esc(r.time)+'</b></span><span>Fare <b>'+money(r.price)+'</b> / seat</span>';
+  document.getElementById('pay-pin').value='';
+  document.getElementById('pay-pin-err').textContent='';
+  document.getElementById('bankDown').checked=false;
+  renderSeatGrid();
+  renderSelection();
+  show('booking');
+}
+
+function renderSeatGrid(){
+  sweepHolds();
+  var r = routeById(BK.routeId), u = curUser(), t = nowMs();
+  var grid = document.getElementById('seatGrid');
+  var html='';
+  for (var s=1; s<=r.seats; s++){
+    var key = seatKey(r.id, BK.date, r.time, s);
+    var st = S.seatState[key];
+    var cls='available', disabled='', aria='available';
+    if (st && st.booked){ cls='booked'; disabled='disabled'; aria='booked'; }
+    else {
+      var lockState = isSeatLocked(st, u.id, t);
+      if (lockState==='unavailable'){ cls='held'; disabled='disabled'; aria='held by another passenger'; }
+      else if (lockState===true){ cls='mine-held'; aria='held by you'; }
+    }
+    if (BK.selected.indexOf(s)>=0){ cls='selected'; aria='selected'; }
+    // aisle gap: column 3 of 5 is the aisle (seats laid 2 + aisle + 2)
+    var col = ((s-1)%4); // 0,1 | 2,3
+    var gridCol = col<2 ? col+1 : col+2; // skip column 3
+    html += '<button class="seat '+cls+'" '+disabled+' style="grid-column:'+gridCol+'" '+
+            'data-seat="'+s+'" aria-label="Seat '+s+', '+aria+'" aria-pressed="'+(BK.selected.indexOf(s)>=0)+'">'+s+'</button>';
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll('.seat').forEach(function(b){
+    if (b.disabled) return;
+    b.onclick = function(){ toggleSeat(parseInt(b.getAttribute('data-seat'),10)); };
+  });
+}
+
+function toggleSeat(s){
+  var r = routeById(BK.routeId), u = curUser();
+  var key = seatKey(r.id, BK.date, r.time, s);
+  var idx = BK.selected.indexOf(s);
+  if (idx>=0){
+    // deselect -> release my hold
+    BK.selected.splice(idx,1);
+    if (S.seatState[key] && S.seatState[key].heldBy===u.id) delete S.seatState[key];
+  } else {
+    // select -> LOCK (FR-06)
+    S.seatState[key] = { heldBy:u.id, heldUntil: nowMs()+SEAT_HOLD_MS };
+    BK.selected.push(s);
+  }
+  save();
+  renderSeatGrid();
+  renderSelection();
+  startHoldTimer();
+}
+
+function renderSelection(){
+  var r = routeById(BK.routeId);
+  var sel = document.getElementById('bk-selection');
+  if (!BK.selected.length){
+    sel.innerHTML = '<span class="muted">No seats selected yet. Tap an available seat to hold it.</span>';
+    document.getElementById('payBtn').disabled = true;
+  } else {
+    sel.innerHTML = BK.selected.sort(function(a,b){return a-b;}).map(function(s){return '<span class="seat-chip">Seat '+s+'</span>';}).join('');
+    document.getElementById('payBtn').disabled = false;
+  }
+  document.getElementById('bk-total').textContent = 'Total: '+money(BK.selected.length * r.price)+' ('+BK.selected.length+' seat'+(BK.selected.length===1?'':'s')+')';
+}
+
+function earliestHoldExpiry(){
+  var r = routeById(BK.routeId), u = curUser(), min=Infinity;
+  BK.selected.forEach(function(s){
+    var st = S.seatState[seatKey(r.id,BK.date,r.time,s)];
+    if (st && st.heldBy===u.id && st.heldUntil) min=Math.min(min,st.heldUntil);
+  });
+  return min===Infinity?0:min;
+}
+
+function startHoldTimer(){
+  if (holdInterval) clearInterval(holdInterval);
+  var wrap = document.getElementById('bk-timer-wrap');
+  function tick(){
+    if (current!=='booking'){ clearInterval(holdInterval); return; }
+    if (!BK.selected.length){ wrap.innerHTML=''; return; }
+    var exp = earliestHoldExpiry();
+    var left = exp - nowMs();
+    if (left<=0){
+      // auto-release (BR-03)
+      sweepHolds();
+      BK.selected = BK.selected.filter(function(s){
+        var st=S.seatState[seatKey(BK.routeId,BK.date,routeById(BK.routeId).time,s)];
+        return st && st.heldUntil>nowMs();
+      });
+      renderSeatGrid(); renderSelection();
+      wrap.innerHTML='';
+      if (!BK.selected.length){ toast('Your seat hold expired and the seats were released.','warn'); }
+      clearInterval(holdInterval);
+      return;
+    }
+    var mm=Math.floor(left/60000), ss=Math.floor((left%60000)/1000);
+    var urgent = left<60000?' urgent':'';
+    wrap.innerHTML = '<span class="hold-timer'+urgent+'">⏳ Seat held: '+mm+':'+(ss<10?'0':'')+ss+'</span>';
+  }
+  tick();
+  holdInterval = setInterval(tick, 1000);
+}
+
+/* ---------- PAYMENT (BR-04, BR-05, IR-01, IR-04, FR-07, NFR-02) ---------- */
+document.getElementById('payBtn') && 0; // placeholder (listeners wired below)
+
+function doPayment(){
+  var r = routeById(BK.routeId), u = curUser();
+  var pin = document.getElementById('pay-pin').value.trim();
+  var errEl = document.getElementById('pay-pin-err'); errEl.textContent='';
+  if (!BK.selected.length){ toast('Select at least one seat first.','warn'); return; }
+  if (!/^\d{4}$/.test(pin)){ errEl.textContent='Enter your 4-digit bank PIN.'; return; }
+
+  var bankUp = !document.getElementById('bankDown').checked;
+  var pinCorrect = (pin===DEMO_PIN);
+
+  // seat still locked by me? (any expired -> treat as not locked -> EXPIRED path)
+  sweepHolds();
+  var allLocked = BK.selected.every(function(s){
+    var st = S.seatState[seatKey(r.id,BK.date,r.time,s)];
+    return isSeatLocked(st, u.id, nowMs())===true;
+  });
+
+  var outcome = decidePayment(bankUp, pinCorrect, allLocked);
+  var seatsCopy = BK.selected.slice().sort(function(a,b){return a-b;});
+  var total = seatsCopy.length * r.price;
+
+  if (outcome==='EXPIRED'){
+    // release + fail (BR-03)
+    seatsCopy.forEach(function(s){ var k=seatKey(r.id,BK.date,r.time,s); if(S.seatState[k]&&S.seatState[k].heldBy===u.id) delete S.seatState[k]; });
+    BK.selected=[]; save(); renderSeatGrid(); renderSelection();
+    toast('Your seat hold expired before payment. The seats were released — please pick seats again.','err');
+    return;
+  }
+  if (outcome==='REJECTED'){
+    // wrong PIN, hold retained (BR-04)
+    errEl.textContent='Incorrect PIN. Your seats are still held — please try again.';
+    toast('Payment rejected: incorrect PIN. Seats remain held for retry.','err');
+    return;
+  }
+
+  var booking = {
+    id: uid(), ref:'SMDC'+Math.floor(100000+Math.random()*899999),
+    userId:u.id, routeId:r.id, date:BK.date, time:r.time,
+    seats:seatsCopy, total:total,
+    status: outcome, // CONFIRMED or PENDING
+    createdAt: clockStr()+' · '+dateStr()
+  };
+
+  if (outcome==='CONFIRMED'){
+    // mark seats booked (IR-04)
+    seatsCopy.forEach(function(s){ S.seatState[seatKey(r.id,BK.date,r.time,s)] = { booked:true, bookingId:booking.id }; });
+    S.bookings.unshift(booking); save();
+    pushMail('Booking confirmed · '+booking.ref,
+      'Dear '+u.name+',\n\nYour SMDC Travels booking is CONFIRMED.\n\nRoute: '+r.from+' → '+r.to+
+      '\nDate: '+fmtDate(BK.date)+'   Departs: '+r.time+'\nSeats: '+seatsCopy.join(', ')+
+      '\nAmount paid: '+money(total)+'\nRef: '+booking.ref+'\n\nHappy journey!\n— SMDC Travels');
+    toast('Booking confirmed — receipt emailed to your Inbox.','ok');
+  } else { // PENDING (bank down, hold RETAINED) (BR-05)
+    S.bookings.unshift(booking); save(); // seats stay held, not booked
+    pushMail('Booking pending — payment could not be confirmed · '+booking.ref,
+      'Dear '+u.name+',\n\nWe could not reach the bank to confirm your payment, so your booking is PENDING.\nYour seats ('+seatsCopy.join(', ')+') are still held while we retry.\n\nRoute: '+r.from+' → '+r.to+
+      '\nDate: '+fmtDate(BK.date)+'\nAmount: '+money(total)+'\nRef: '+booking.ref+'\n\nWe will email you once the bank responds.\n— SMDC Travels');
+    toast('Bank unavailable — booking saved as PENDING, seats still held. Email sent.','warn');
+  }
+  BK.selected=[];
+  if (holdInterval) clearInterval(holdInterval);
+  document.getElementById('bk-timer-wrap').innerHTML='';
+  show('bookings');
+}
+
+/* =========================================================================
+   MY BOOKINGS + CANCELLATION  (FR-08, Q-03)
+   ========================================================================= */
+function renderMyBookings(){
+  var u = curUser();
+  var mine = S.bookings.filter(function(b){ return b.userId===u.id; });
+  var el = document.getElementById('myBookings');
+  if (!mine.length){ el.innerHTML='<div class="empty">No bookings yet. <br>Browse schedules to book your first trip.</div>'; return; }
+  el.innerHTML = mine.map(function(b){
+    var r = routeById(b.routeId);
+    var pill = b.status==='CONFIRMED'?'<span class="pill ok">Confirmed</span>'
+             : b.status==='PENDING'?'<span class="pill pending">Payment pending</span>'
+             : b.status==='CANCELLED'?'<span class="pill cancel">Cancelled</span>'
+             : '<span class="pill fail">'+esc(b.status)+'</span>';
+    if (!b.seats.length) pill='<span class="pill cancel">Cancelled</span>';
+    var seatBtns = b.seats.map(function(s){
+      return '<span class="seat-chip">Seat '+s+' '+
+        (b.status==='CANCELLED'?'':'<button class="btn btn-sm" data-cancel-seat="'+b.id+':'+s+'" title="Cancel this seat" style="background:rgba(255,255,255,.25);color:#fff;padding:0 6px;margin-left:4px">✕</button>')+
+      '</span>';
+    }).join('');
+    return '<div class="card">'+
+      '<div class="section-head" style="margin-bottom:var(--s3)">'+
+        '<div><h3 style="margin:0">'+esc(r?r.from+' → '+r.to:'(route removed)')+'</h3>'+
+        '<div class="muted">Ref '+esc(b.ref)+' · '+fmtDate(b.date)+' · Departs '+esc(b.time)+'</div></div>'+
+        pill+
+      '</div>'+
+      (b.seats.length? '<div class="seat-chips" style="margin-bottom:var(--s3)">'+seatBtns+'</div>' : '<div class="muted" style="margin-bottom:var(--s3)">All seats cancelled.</div>')+
+      '<div class="inline-note">Total: '+money((r?r.price:0)*b.seats.length)+' · '+b.seats.length+' active seat(s)</div>'+
+      (b.seats.length && b.status!=='CANCELLED' ? '<button class="btn btn-outline btn-sm" data-cancel-all="'+b.id+'" style="margin-top:var(--s3)">Cancel entire booking</button>':'')+
+    '</div>';
+  }).join('');
+  el.querySelectorAll('[data-cancel-seat]').forEach(function(x){
+    x.onclick=function(){ var p=x.getAttribute('data-cancel-seat').split(':'); cancelSeat(p[0], parseInt(p[1],10)); };
+  });
+  el.querySelectorAll('[data-cancel-all]').forEach(function(x){
+    x.onclick=function(){ confirmModal('Cancel entire booking?','This releases all seats back to available inventory.', function(){ cancelBooking(x.getAttribute('data-cancel-all')); }); };
+  });
+}
+
+/* cancel a single seat of a multi-seat booking (Q-03) */
+function cancelSeat(bookingId, seat){
+  var b = S.bookings.find(function(x){return x.id===bookingId;});
+  if (!b) return;
+  var r = routeById(b.routeId);
+  var key = seatKey(b.routeId, b.date, b.time, seat);
+  delete S.seatState[key];                 // seat back to available inventory
+  b.seats = b.seats.filter(function(s){return s!==seat;});
+  if (!b.seats.length) b.status='CANCELLED';
+  save();
+  toast('Seat '+seat+' cancelled and returned to inventory.','ok');
+  renderMyBookings();
+}
+function cancelBooking(bookingId){
+  var b = S.bookings.find(function(x){return x.id===bookingId;});
+  if (!b) return;
+  b.seats.forEach(function(s){ delete S.seatState[seatKey(b.routeId,b.date,b.time,s)]; });
+  b.seats=[]; b.status='CANCELLED'; save();
+  toast('Booking cancelled. Seats returned to inventory.','ok');
+  renderMyBookings();
+}
+
+/* =========================================================================
+   INBOX
+   ========================================================================= */
+function renderInbox(){
+  S.inbox.forEach(function(m){m.read=true;}); save(); renderNav();
+  var el=document.getElementById('inboxList');
+  if (!S.inbox.length){ el.innerHTML='<div class="empty">Inbox empty. Confirmed and pending bookings send a receipt here.</div>'; return; }
+  el.innerHTML = S.inbox.map(function(m){
+    return '<div class="mail"><div class="subj">'+esc(m.subject)+'</div>'+
+      '<div class="from">From '+esc(m.from)+' · '+esc(m.at)+'</div>'+
+      '<div class="body">'+esc(m.body)+'</div></div>';
+  }).join('');
+}
+
+/* =========================================================================
+   MANAGER  (FR-09, NFR-05)
+   ========================================================================= */
+var mgrLastRefresh = nowMs();
+function renderManager(){
+  renderMgrBookings(); renderMgrSchedule(); renderMgrReport(); updateRefreshLabel();
+}
+function renderMgrBookings(){
+  var el=document.getElementById('mgr-bookings');
+  var active = S.bookings.filter(function(b){return b.seats.length;});
+  if (!active.length){ el.innerHTML='<div class="empty">No active bookings.</div>'; return; }
+  el.innerHTML='<div class="table-scroll"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Seats</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+
+    active.map(function(b){
+      var r=routeById(b.routeId), u=S.users.find(function(x){return x.id===b.userId;});
+      return '<tr><td>'+esc(b.ref)+'</td><td>'+esc(u?u.name:'—')+'</td><td>'+esc(r?r.from+'→'+r.to:'—')+'</td><td>'+fmtDate(b.date)+'</td>'+
+        '<td>'+b.seats.join(', ')+'</td><td>'+money((r?r.price:0)*b.seats.length)+'</td>'+
+        '<td>'+(b.status==='CONFIRMED'?'<span class="pill ok">Confirmed</span>':'<span class="pill pending">Pending</span>')+'</td>'+
+        '<td><button class="btn btn-danger btn-sm" data-mcancel="'+b.id+'">Cancel</button></td></tr>';
+    }).join('')+'</tbody></table></div>';
+  el.querySelectorAll('[data-mcancel]').forEach(function(x){
+    x.onclick=function(){ confirmModal('Cancel this booking?','Seats return to inventory.', function(){ cancelBooking(x.getAttribute('data-mcancel')); renderManager(); }); };
+  });
+}
+function renderMgrSchedule(){
+  var el=document.getElementById('mgr-schedule');
+  el.innerHTML='<p class="muted">Edit departure times for any route.</p><div class="table-scroll"><table><thead><tr><th>Route</th><th>Departure</th><th>Duration</th><th></th></tr></thead><tbody>'+
+    S.routes.map(function(r){
+      return '<tr><td>'+esc(r.from+' → '+r.to)+'</td>'+
+        '<td><input value="'+esc(r.time)+'" data-time="'+r.id+'" style="padding:6px;border:1px solid var(--border);border-radius:6px;width:120px"/></td>'+
+        '<td>'+esc(r.dur)+'</td>'+
+        '<td><button class="btn btn-outline btn-sm" data-savetime="'+r.id+'">Save</button></td></tr>';
+    }).join('')+'</tbody></table></div>';
+  el.querySelectorAll('[data-savetime]').forEach(function(x){
+    x.onclick=function(){
+      var id=x.getAttribute('data-savetime');
+      var inp=el.querySelector('[data-time="'+id+'"]');
+      var r=routeById(id); r.time=inp.value.trim()||r.time; save();
+      toast('Departure time updated for '+r.from+' → '+r.to+'.','ok');
+      renderManager();
+    };
+  });
+}
+function renderMgrReport(){
+  var el=document.getElementById('mgr-report');
+  var confirmed = S.bookings.filter(function(b){return b.status==='CONFIRMED'&&b.seats.length;});
+  var totalRev = confirmed.reduce(function(a,b){ var r=routeById(b.routeId); return a+(r?r.price:0)*b.seats.length; },0);
+  var pax = confirmed.reduce(function(a,b){return a+b.seats.length;},0);
+  el.innerHTML='<div class="stat-grid" style="margin-bottom:var(--s5)">'+
+    '<div class="stat"><div class="n">'+confirmed.length+'</div><div class="l">Confirmed bookings</div></div>'+
+    '<div class="stat"><div class="n">'+pax+'</div><div class="l">Passengers</div></div>'+
+    '<div class="stat"><div class="n">'+money(totalRev)+'</div><div class="l">Total sales</div></div>'+
+    '</div>'+
+    '<h3>Passenger / sales report</h3>'+
+    (confirmed.length? '<div class="table-scroll"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Seats</th><th>Amount</th></tr></thead><tbody>'+
+      confirmed.map(function(b){ var r=routeById(b.routeId),u=S.users.find(function(x){return x.id===b.userId;});
+        return '<tr><td>'+esc(b.ref)+'</td><td>'+esc(u?u.name:'—')+'</td><td>'+esc(r?r.from+'→'+r.to:'—')+'</td><td>'+fmtDate(b.date)+'</td><td>'+b.seats.join(', ')+'</td><td>'+money((r?r.price:0)*b.seats.length)+'</td></tr>';
+      }).join('')+
+      '<tr><td colspan="5" style="text-align:right;font-weight:700">Total</td><td style="font-weight:700">'+money(totalRev)+'</td></tr>'+
+      '</tbody></table></div>' : '<div class="empty">No confirmed sales yet.</div>');
+}
+function updateRefreshLabel(){
+  var el=document.getElementById('mgrRefresh');
+  if (!el) return;
+  var sec=Math.floor((nowMs()-mgrLastRefresh)/1000);
+  var ago = sec<60? sec+'s ago' : Math.floor(sec/60)+'m ago';
+  el.innerHTML='<span class="dot"></span>Refreshed '+ago+' · auto-refreshes every 5 min';
+}
+
+/* =========================================================================
+   ADMIN  (FR-10, BR-06, SR-03, SR-04, Q-04)
+   ========================================================================= */
+function renderAdmin(){ renderAdmRoutes(); renderAdmUsers(); renderAdmAudit(); }
+
+function renderAdmRoutes(){
+  var el=document.getElementById('adm-routes');
+  el.innerHTML =
+    '<div class="card"><h3>Add route / vehicle</h3>'+
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">'+
+      '<div class="form-row"><label class="field">From</label><input id="ar-from"/></div>'+
+      '<div class="form-row"><label class="field">To</label><input id="ar-to"/></div>'+
+      '<div class="form-row"><label class="field">Departs</label><input id="ar-time" placeholder="8:00 AM"/></div>'+
+      '<div class="form-row"><label class="field">Duration</label><input id="ar-dur" placeholder="3h"/></div>'+
+      '<div class="form-row"><label class="field">Price (₹)</label><input id="ar-price" type="number"/></div>'+
+      '<div class="form-row"><label class="field">Vehicle</label><input id="ar-veh" placeholder="SMDC-1234"/></div>'+
+    '</div><button class="btn btn-primary btn-sm" id="ar-add">Add route</button></div>'+
+    '<div class="table-scroll"><table><thead><tr><th>Route</th><th>Departs</th><th>Price</th><th>Vehicle</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+    S.routes.map(function(r){
+      var activeBk = S.bookings.filter(function(b){return b.routeId===r.id && b.seats.length;}).length;
+      return '<tr><td>'+esc(r.from+' → '+r.to)+'</td><td>'+esc(r.time)+'</td><td>'+money(r.price)+'</td><td>'+esc(r.vehicle)+'</td>'+
+        '<td>'+(r.active?'<span class="pill ok">Active</span>':'<span class="pill cancel">Inactive</span>')+'</td>'+
+        '<td style="white-space:nowrap">'+
+          '<button class="btn btn-outline btn-sm" data-toggle="'+r.id+'">'+(r.active?'Deactivate':'Activate')+'</button> '+
+          '<button class="btn btn-danger btn-sm" data-del="'+r.id+'" title="'+(activeBk?'Blocked: '+activeBk+' active booking(s)':'Delete route')+'">Delete</button>'+
+        '</td></tr>';
+    }).join('')+'</tbody></table></div>';
+
+  document.getElementById('ar-add').onclick=function(){
+    var from=val('ar-from'),to=val('ar-to');
+    if (!from||!to){ toast('From and To are required.','err'); return; }
+    S.routes.push({ id:uid(),from:from,to:to,time:val('ar-time')||'8:00 AM',dur:val('ar-dur')||'3h',
+      price:parseInt(val('ar-price'),10)||300,vehicle:val('ar-veh')||('SMDC-'+Math.floor(1000+Math.random()*8999)),
+      seats:40,active:true,dates:[todayPlus(1),todayPlus(2),todayPlus(3)] });
+    audit('Added route '+from+' → '+to);
+    save(); toast('Route added.','ok'); renderAdmin();
+  };
+  el.querySelectorAll('[data-toggle]').forEach(function(x){
+    x.onclick=function(){ var r=routeById(x.getAttribute('data-toggle')); r.active=!r.active;
+      audit((r.active?'Activated':'Deactivated')+' route '+r.from+' → '+r.to); save(); renderAdmin(); };
+  });
+  el.querySelectorAll('[data-del]').forEach(function(x){
+    x.onclick=function(){
+      var r=routeById(x.getAttribute('data-del'));
+      var activeBk = S.bookings.filter(function(b){return b.routeId===r.id && b.seats.length;}).length;
+      if (activeBk){ // BR-06 block delete with active bookings
+        toast('Cannot delete '+r.from+' → '+r.to+': it has '+activeBk+' active booking(s). Deactivate it instead.','err');
+        return;
+      }
+      confirmModal('Delete route?','Permanently remove '+r.from+' → '+r.to+'. This cannot be undone.', function(){
+        S.routes = S.routes.filter(function(z){return z.id!==r.id;});
+        audit('Deleted route '+r.from+' → '+r.to); save(); toast('Route deleted.','ok'); renderAdmin();
+      });
+    };
+  });
+}
+
+function renderAdmUsers(){
+  var el=document.getElementById('adm-users');
+  el.innerHTML='<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+    S.users.map(function(u){
+      return '<tr><td>'+esc(u.name)+'</td><td>'+esc(u.email)+'</td><td>'+esc(u.role)+'</td>'+
+        '<td>'+(u.locked?'<span class="pill fail">Locked</span>':'<span class="pill ok">Active</span>')+(u.failed?' <span class="muted">('+u.failed+' fails)</span>':'')+'</td>'+
+        '<td>'+(u.locked?'<button class="btn btn-primary btn-sm" data-unlock="'+u.id+'">Unlock</button>':'<span class="muted">—</span>')+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
+  el.querySelectorAll('[data-unlock]').forEach(function(x){
+    x.onclick=function(){ var u=S.users.find(function(z){return z.id===x.getAttribute('data-unlock');});
+      u.locked=false; u.failed=0; audit('Unlocked account '+u.email); save();
+      toast('Account '+u.email+' unlocked.','ok'); renderAdmin(); };
+  });
+}
+
+function renderAdmAudit(){
+  var el=document.getElementById('adm-audit');
+  if (!S.audit.length){ el.innerHTML='<div class="empty">No admin actions logged yet.</div>'; return; }
+  el.innerHTML='<p class="muted">Every admin mutation is logged (SR-04, Q-04).</p><div class="table-scroll"><table><thead><tr><th>Date</th><th>Time</th><th>User</th><th>Action</th></tr></thead><tbody>'+
+    S.audit.map(function(a){ return '<tr><td>'+esc(a.date)+'</td><td>'+esc(a.time)+'</td><td>'+esc(a.user)+'</td><td>'+esc(a.action)+'</td></tr>'; }).join('')+
+    '</tbody></table></div>';
+}
+function val(id){ return document.getElementById(id).value.trim(); }
+
+/* =========================================================================
+   AUTH  (FR-01, FR-02, FR-03, DR-01, SR-03)
+   ========================================================================= */
+function login(email, pass){
+  var u = S.users.find(function(x){return x.email.toLowerCase()===email.toLowerCase();});
+  if (!u){ return {ok:false, msg:'No account found with that email.'}; }
+  if (u.locked){ return {ok:false, msg:'This account is locked. Check your Inbox for the unlock link, or ask an admin.'}; }
+  if (u.pass!==pass){
+    u.failed=(u.failed||0)+1;
+    if (u.failed>=MAX_FAILED){
+      u.locked=true;
+      pushMail('Account locked — unlock link', 'Dear '+u.name+',\n\nAfter '+MAX_FAILED+' failed sign-in attempts your SMDC Travels account ('+u.email+') has been locked for your security.\n\nWe\'ve emailed an unlock link to your address. (In this prototype, an admin can also unlock your account from the Admin console.)\n\n— SMDC Travels Security');
+      save();
+      return {ok:false, locked:true, msg:'Too many failed attempts — your account is now locked. We\'ve emailed an unlock link to your address.'};
+    }
+    save();
+    return {ok:false, msg:'Incorrect password. '+(MAX_FAILED-u.failed)+' attempt(s) left before lockout.'};
+  }
+  u.failed=0; S.session=u.id; save();
+  return {ok:true, user:u};
+}
+function logout(){ S.session=null; save(); toast('Logged out.','ok'); show('browse'); }
+
+function register(name, email, gov, pass){
+  if (S.users.some(function(u){return u.email.toLowerCase()===email.toLowerCase();}))
+    return {ok:false, field:'email', msg:'An account with this email already exists.'}; // DR-01 duplicate
+  var u={ id:uid(), name:name, email:email, pass:pass, gov:gov, role:'customer', failed:0, locked:false };
+  S.users.push(u); S.session=u.id; save();
+  return {ok:true, user:u};
+}
+
+/* =========================================================================
+   TOASTS + MODAL
+   ========================================================================= */
+function toast(msg, kind){
+  var t=document.createElement('div');
+  t.className='toast '+(kind||'');
+  t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(function(){ t.style.transition='opacity .3s,transform .3s'; t.style.opacity='0'; t.style.transform='translateX(120%)'; setTimeout(function(){t.remove();},300); }, 4200);
+}
+var modalCb=null;
+function confirmModal(title, body, cb){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').textContent=body;
+  modalCb=cb; document.getElementById('modalBg').classList.add('open');
+}
+document.getElementById('modalCancel').onclick=function(){ document.getElementById('modalBg').classList.remove('open'); modalCb=null; };
+document.getElementById('modalOk').onclick=function(){ document.getElementById('modalBg').classList.remove('open'); if(modalCb)modalCb(); modalCb=null; };
+
+/* =========================================================================
+   VALIDATION HELPERS (FR-01, DR-01)
+   ========================================================================= */
+function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+/* =========================================================================
+   WIRE-UP
+   ========================================================================= */
+function wire(){
+  // nav brand
+  document.getElementById('brandHome').onclick=function(e){ e.preventDefault(); show('browse'); };
+  document.getElementById('heroBrowse').onclick=function(){ document.getElementById('routeList').scrollIntoView({behavior:'smooth'}); };
+  document.getElementById('heroLogin').onclick=function(){ show('login'); };
+  document.getElementById('backToBrowse').onclick=function(){ if(holdInterval)clearInterval(holdInterval); show('browse'); };
+  document.getElementById('payBtn').onclick=doPayment;
+
+  // login
+  document.getElementById('loginForm').onsubmit=function(e){
+    e.preventDefault();
+    var email=document.getElementById('li-email').value.trim();
+    var pass=document.getElementById('li-pass').value;
+    document.getElementById('li-email-err').textContent='';
+    document.getElementById('li-pass-err').textContent='';
+    if (!validEmail(email)){ document.getElementById('li-email-err').textContent='Enter a valid email address.'; return; }
+    if (!pass){ document.getElementById('li-pass-err').textContent='Enter your password.'; return; }
+    var res=login(email,pass);
+    if (!res.ok){ document.getElementById('li-pass-err').textContent=res.msg; if(res.locked) renderNav(); toast(res.msg, res.locked?'err':'warn'); return; }
+    toast('Welcome back, '+res.user.name+'.','ok');
+    renderNav();
+    show(res.user.role==='manager'?'manager':res.user.role==='admin'?'admin':'browse');
+  };
+  document.querySelectorAll('.cred-row[data-email]').forEach(function(row){
+    row.style.cursor='pointer';
+    row.onclick=function(){ document.getElementById('li-email').value=row.getAttribute('data-email'); document.getElementById('li-pass').value=row.getAttribute('data-pass'); };
+  });
+  document.getElementById('toRegister').onclick=function(e){ e.preventDefault(); show('register'); };
+  document.getElementById('toLogin').onclick=function(e){ e.preventDefault(); show('login'); };
+
+  // register
+  document.getElementById('regForm').onsubmit=function(e){
+    e.preventDefault();
+    var name=val('rg-name'),email=val('rg-email'),gov=val('rg-gov'),pass=document.getElementById('rg-pass').value;
+    ['rg-name-err','rg-email-err','rg-gov-err','rg-pass-err'].forEach(function(id){document.getElementById(id).textContent='';});
+    var bad=false;
+    if (name.length<2){ document.getElementById('rg-name-err').textContent='Please enter your full name.'; bad=true; }
+    if (!validEmail(email)){ document.getElementById('rg-email-err').textContent='Enter a valid email address.'; bad=true; }
+    if (gov.length<4){ document.getElementById('rg-gov-err').textContent='Enter a valid government ID.'; bad=true; }
+    if (pass.length<8 || !/[a-zA-Z]/.test(pass) || !/[0-9]/.test(pass)){ document.getElementById('rg-pass-err').textContent='Password needs 8+ characters, a letter and a number.'; bad=true; }
+    if (bad) return;
+    var res=register(name,email,gov,pass);
+    if (!res.ok){ document.getElementById('rg-'+res.field+'-err').textContent=res.msg; toast(res.msg,'err'); return; }
+    toast('Account created — welcome, '+res.user.name+'!','ok');
+    renderNav(); show('browse');
+  };
+
+  // manager tabs
+  document.getElementById('mgrTabs').querySelectorAll('button').forEach(function(b){
+    b.onclick=function(){
+      document.getElementById('mgrTabs').querySelectorAll('button').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      ['mgr-bookings','mgr-schedule','mgr-report'].forEach(function(id){ document.getElementById(id).style.display = (id===b.getAttribute('data-tab'))?'block':'none'; });
+    };
+  });
+  // admin tabs
+  document.getElementById('admTabs').querySelectorAll('button').forEach(function(b){
+    b.onclick=function(){
+      document.getElementById('admTabs').querySelectorAll('button').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      ['adm-routes','adm-users','adm-audit'].forEach(function(id){ document.getElementById(id).style.display=(id===b.getAttribute('data-tab'))?'block':'none'; });
+    };
+  });
+
+  // reset demo
+  document.getElementById('resetDemo').onclick=function(){
+    confirmModal('Reset demo data?','This clears all bookings, accounts, and holds and re-seeds the original demo content.', function(){
+      localStorage.removeItem(LS_KEY); seed(); toast('Demo data reset.','ok'); show('browse');
+    });
+  };
+
+  // manager auto-refresh (NFR-05): real 5-min interval updates lastRefreshed
+  setInterval(function(){ mgrLastRefresh=nowMs(); if(current==='manager') renderManager(); }, REFRESH_MS);
+  // live "Xs ago" label ticks every second while on manager view
+  setInterval(function(){ if(current==='manager') updateRefreshLabel(); }, 1000);
+}
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+load();
+wire();
+renderNav();
+renderRoutes();
+show('browse');
+</script>
+</body>
+</html>
