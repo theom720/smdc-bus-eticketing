@@ -69,5 +69,5 @@ Use **Reset demo data** (footer) to clear `localStorage` and re-seed.
 
 - Bank, email, and government-ID verification are **simulated** (prototype scope). The Inbox is a single shared demo
   mailbox so graders can see every generated message in one place.
-- Each route has one departure time per day; seats are a flat grid of 40 (2 + aisle + 2 per row). Window = the two outer columns, aisle = the two inner columns.
+- Routes cover **all 90 city pairs** across 10 cities (Mumbai, Pune, Delhi, Jaipur, Bengaluru, Chennai, Nashik, Hyderabad, Vijayawada, Coimbatore). Distances are computed via haversine; prices are derived from distance (≈ ₹2.20/km, min ₹150). Each route has **10 daily departure times** (5:30 AM through 10:30 PM); seat state is keyed by route + date + time so different slots hold seats independently. Use the **From / To filters** on Browse to narrow the schedule list. Storage key: `smdc_eticketing_v2`. Seats are a flat grid of 40 (2 + aisle + 2 per row). Window = the two outer columns, aisle = the two inner columns.
 - The boarding-pass "QR" is a deterministic SVG grid seeded from the booking ref (QR-styled finder corners), not a scannable code — it's a stable visual token, no library used. Charts are hand-drawn inline SVG (no chart library). Dark mode and all charts/seat colours read from the same CSS variables so both themes stay consistent.

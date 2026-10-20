@@ -8,7 +8,7 @@ Tip: click **Reset demo data** (footer) first for a clean slate.
 > Also point out the **moon/sun icon** at the far right of the nav — the **dark-mode toggle** (persists across reloads). Toggle it once now to show the whole app (including charts and seat map) re-theme, then toggle back.
 
 ## 0. Browse filters + occupancy (new UI)
-1. On **Browse**, note the **search/filter bar**: pick **From = Mumbai** → the result count ("X routes found (filtered)") and the card list update live; pick a **Sort** (e.g. Price: low to high) to reorder. Click **Clear** to reset.
+1. On **Browse**, note the **search/filter bar** — with 90 routes across 10 cities the filters are the primary way to navigate. Pick **From = Mumbai** → result count updates and the card list narrows live; add **To = Pune** to drill to one route. Pick a **Sort** (e.g. Price: low to high) to reorder. Click **Clear** to reset.
 2. Each route card shows an **occupancy bar** ("N / M seats booked across upcoming dates · P% full").
 3. (Optional) Set From/To to a combination with no route → graceful **empty state** ("No schedules match your filters").
 
@@ -27,9 +27,10 @@ Tip: click **Reset demo data** (footer) first for a clean slate.
 1. On **Login**, in the **Demo credentials** card click the **Customer** row → fields auto-fill. Note PIN hint `4321`.
 2. Click **Log in** → "Welcome back."
 
-## 4. Pick route / date / time → seat map (FR-05, DR-03)
-1. **Browse** → choose **Mumbai → Pune** (₹350, departs 8:00 AM).
-2. Click a date pill → opens the **seat map**: real seat grid, legend with **Available / Selected / Held / Booked** colours (FR-05).
+## 4. Pick route / date / time → seat map (FR-04, FR-05, DR-03)
+1. **Browse** → use **From = Mumbai**, **To = Pune** to find that route (₹350). Each date now shows a row of **10 departure time pills** (5:30 AM through 10:30 PM), each with its own seats-remaining count for that date+slot (FR-04).
+2. Click a time pill (e.g. **9:30 AM**) → opens the **seat map** for that specific route + date + time: real seat grid, legend with **Available / Selected / Held / Booked** colours (FR-05).
+3. To show slots are independent: go back and pick the **same date** but a **different time** (e.g. 1:00 PM) — it opens a fresh, independent seat map; a seat booked on the 9:30 AM slot is still available on the 1:00 PM slot (DR-03).
 
 ## 5. Select a seat → stepper + hold timer (FR-06, BR-02, BR-03, seat pref)
 1. Note the **3-step stepper** at the top (1 Choose seats → 2 Pay → 3 Done) and the **sticky selection summary** on the right.

@@ -179,6 +179,14 @@
   }
   .date-pill:hover { border-color: var(--saffron); }
   .date-pill .seats { display:block; font-size:.7rem; color: var(--text-soft); font-weight: 500; }
+  .time-pills { display:flex; gap: var(--s2); flex-wrap: wrap; margin-top: var(--s2); }
+  .time-pill {
+    border: 1.5px solid var(--border); background: var(--surface); border-radius: var(--r-pill);
+    padding: var(--s1) var(--s3); font-size: .8rem; cursor: pointer; font-weight: 600; color: var(--navy);
+    display:inline-flex; flex-direction:column; align-items:center; gap:1px;
+  }
+  .time-pill:hover { border-color: var(--saffron); background: var(--surface-alt); }
+  .time-pill .tp-seats { font-size:.68rem; color: var(--text-soft); font-weight:500; }
 
   /* ---- badges / pills ---- */
   .pill { display:inline-flex; align-items:center; gap:4px; padding: 2px 10px; border-radius: var(--r-pill); font-size:.72rem; font-weight:700; text-transform: uppercase; letter-spacing: .03em; }
@@ -667,7 +675,7 @@
 var SEAT_HOLD_MS = 5 * 60 * 1000; // 5 min  (BR-02 / BR-03)
 var DEMO_PIN = '4321';            // IR-01
 var MAX_FAILED = 5;               // SR-03
-var LS_KEY = 'smdc_eticketing_v1';
+var LS_KEY = 'smdc_eticketing_v2';
 var REFRESH_MS = 5 * 60 * 1000;   // NFR-05 manager auto-refresh
 
 /* ---------- PURE LOGIC (also mirrored in selfcheck.js) ---------- */
@@ -708,6 +716,8 @@ function load(){
   if (raw) { try { S = JSON.parse(raw); if (!S.payments) S.payments = [];
     // backfill: older data had route.dur (travel time); replace with a distance in km
     if (S.routes) S.routes.forEach(function(r){ if (r.dist==null) { r.dist = r.dur ? (parseFloat(r.dur)||2)*55 : 100; delete r.dur; } });
+    // backfill: older data had a single route.time; migrate to times array (bookings keep their own b.time)
+    if (S.routes) S.routes.forEach(function(r){ if (!r.times) { r.times = r.time ? [r.time] : ['8:00 AM']; delete r.time; } });
     return; } catch(e){} }
   seed();
 }
@@ -717,22 +727,48 @@ function todayPlus(d){
   return dt.toISOString().slice(0,10);
 }
 
+/* haversine distance between two lat/lng points, returns km (rounded) */
+function haversineKm(lat1, lon1, lat2, lon2) {
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLon = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+          Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+          Math.sin(dLon/2)*Math.sin(dLon/2);
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
 function seed(){
-  var routes = [
-    { from:'Mumbai',    to:'Pune',       dist:150, price:350, time:'8:00 AM'  },
-    { from:'Delhi',     to:'Jaipur',     dist:280, price:650, time:'7:00 AM'  },
-    { from:'Bengaluru', to:'Chennai',    dist:350, price:800, time:'9:00 AM'  },
-    { from:'Mumbai',    to:'Nashik',     dist:170, price:280, time:'6:30 AM'  },
-    { from:'Hyderabad', to:'Vijayawada', dist:275, price:450, time:'8:30 AM'  },
-    { from:'Chennai',   to:'Coimbatore', dist:500, price:550, time:'7:30 AM'  }
-  ].map(function(r){
-    return {
-      id: uid(), from:r.from, to:r.to, dist:r.dist, price:r.price, time:r.time,
-      vehicle: 'SMDC-' + Math.floor(1000+Math.random()*8999),
-      seats: 40, active: true,
-      dates: [todayPlus(1), todayPlus(2), todayPlus(3)]
-    };
-  });
+  var CITIES = [
+    { name:'Mumbai',     lat:19.08, lon:72.88 },
+    { name:'Pune',       lat:18.52, lon:73.86 },
+    { name:'Delhi',      lat:28.61, lon:77.21 },
+    { name:'Jaipur',     lat:26.91, lon:75.79 },
+    { name:'Bengaluru',  lat:12.97, lon:77.59 },
+    { name:'Chennai',    lat:13.08, lon:80.27 },
+    { name:'Nashik',     lat:19.99, lon:73.79 },
+    { name:'Hyderabad',  lat:17.39, lon:78.49 },
+    { name:'Vijayawada', lat:16.51, lon:80.65 },
+    { name:'Coimbatore', lat:11.02, lon:76.97 }
+  ];
+  var DAILY_TIMES = ['5:30 AM','7:00 AM','8:30 AM','10:00 AM','12:00 PM','2:00 PM','4:00 PM','6:00 PM','8:30 PM','10:30 PM'];
+  var routes = [];
+  for (var i = 0; i < CITIES.length; i++) {
+    for (var j = 0; j < CITIES.length; j++) {
+      if (i === j) continue;
+      var from = CITIES[i], to = CITIES[j];
+      var dist = haversineKm(from.lat, from.lon, to.lat, to.lon);
+      var rawPrice = Math.round(dist * 2.2 / 10) * 10;
+      var price = Math.max(150, rawPrice);
+      routes.push({
+        id: uid(), from: from.name, to: to.name, dist: dist, price: price,
+        times: DAILY_TIMES,
+        vehicle: 'SMDC-' + (Math.floor(1000 + Math.random() * 8999)),
+        seats: 40, active: true,
+        dates: [todayPlus(1), todayPlus(2), todayPlus(3)]
+      });
+    }
+  }
   S = {
     users: [
       { id:uid(), name:'Demo Customer', email:'customer@smdc.test', pass:'Travel@123', gov:'XXXX-1111-2222', role:'customer', failed:0, locked:false },
@@ -740,12 +776,12 @@ function seed(){
       { id:uid(), name:'Demo Admin',    email:'admin@smdc.test',    pass:'Admin@123',  gov:'XXXX-5555-6666', role:'admin',    failed:0, locked:false }
     ],
     routes: routes,
-    seatState: {},   // key -> { heldBy, heldUntil }  OR { booked:true, bookingId }
-    bookings: [],    // { id, userId, routeId, date, seats:[], status, total, createdAt }
-    inbox: [],       // simulated emails (global demo inbox)
-    audit: [],       // { user, action, date, time }
-    payments: [],    // { ref, user, event, amount, date, time }  (SR-04 payment log)
-    session: null    // current userId
+    seatState: {},
+    bookings: [],
+    inbox: [],
+    audit: [],
+    payments: [],
+    session: null
   };
   save();
 }
@@ -791,12 +827,12 @@ function sweepHolds(){
   if (changed) save();
 }
 
-/* seats remaining for a route+date (uses first/only time) (SR-01, FR-04) */
-function seatsRemaining(route, date){
-  sweepHolds();
+/* seats remaining for a route+date+time (SR-01, FR-04) */
+function seatsRemaining(route, date, time){
+  var t = time || (route.times && route.times[0]) || '8:00 AM';
   var taken = 0;
   for (var s=1; s<=route.seats; s++){
-    var st = S.seatState[seatKey(route.id,date,route.time,s)];
+    var st = S.seatState[seatKey(route.id,date,t,s)];
     if (st && (st.booked || (st.heldUntil && st.heldUntil>nowMs()))) taken++;
   }
   return route.seats - taken;
@@ -897,6 +933,7 @@ function renderRoutes(){
 }
 
 function paintRoutes(){
+  sweepHolds(); // sweep once per paint, not per route×date×time call
   var list = document.getElementById('routeList');
   var count = document.getElementById('resultCount');
   if (!list) return;
@@ -916,29 +953,36 @@ function paintRoutes(){
     return;
   }
   list.innerHTML = rows.map(function(r){
-    // occupancy across all its dates (booked vs total capacity on offer)
-    var cap = r.seats * r.dates.length, free = 0;
-    r.dates.forEach(function(d){ free += seatsRemaining(r,d); });
+    // occupancy across all dates × all times (booked vs total capacity on offer)
+    var times = r.times || ['8:00 AM'];
+    var cap = r.seats * r.dates.length * times.length, free = 0;
+    r.dates.forEach(function(d){ times.forEach(function(t){ free += seatsRemaining(r,d,t); }); });
     var booked = cap - free;
     var pct = cap? Math.round(booked/cap*100) : 0;
     var dates = r.dates.map(function(d){
-      var rem = seatsRemaining(r,d);
-      return '<button class="date-pill" data-route="'+r.id+'" data-date="'+d+'">'+fmtDate(d)+
-             '<span class="seats">'+rem+' / '+r.seats+' seats left</span></button>';
+      var timePills = times.map(function(t){
+        var rem = seatsRemaining(r,d,t);
+        return '<button class="time-pill" data-route="'+r.id+'" data-date="'+d+'" data-time="'+esc(t)+'">'+
+               esc(t)+'<span class="tp-seats">'+rem+' seats</span></button>';
+      }).join('');
+      return '<div style="margin-bottom:var(--s3)">'+
+               '<div class="muted" style="font-size:.75rem;margin-bottom:var(--s1)">'+fmtDate(d)+'</div>'+
+               '<div class="time-pills">'+timePills+'</div>'+
+             '</div>';
     }).join('');
     return '<div class="card route-card">'+
       '<div class="route-head">'+
         '<div><div class="route-path">'+esc(r.from)+' &rarr; '+esc(r.to)+'</div>'+
-        '<div class="route-meta"><span>Departs <b>'+esc(r.time)+'</b></span><span>Distance <b>'+distStr(r.dist)+'</b></span><span>Bus <b>'+esc(r.vehicle)+'</b></span></div></div>'+
+        '<div class="route-meta"><span>'+times.length+' daily departure'+(times.length===1?'':'s')+'</span><span>Distance <b>'+distStr(r.dist)+'</b></span><span>Bus <b>'+esc(r.vehicle)+'</b></span></div></div>'+
         '<div class="price-tag">'+money(r.price)+'</div>'+
       '</div>'+
       '<div class="occ"><div class="occ-track"><div class="occ-fill" style="width:'+pct+'%"></div></div>'+
         '<div class="occ-label">'+booked+' / '+cap+' seats booked across upcoming dates ('+pct+'% full)</div></div>'+
-      '<div><div class="muted" style="margin-bottom:var(--s2)">Pick a travel date:</div><div class="date-row">'+dates+'</div></div>'+
+      '<div><div class="muted" style="margin-bottom:var(--s2)">Pick a date &amp; departure time:</div>'+dates+'</div>'+
     '</div>';
   }).join('');
-  list.querySelectorAll('.date-pill').forEach(function(p){
-    p.onclick = function(){ openBooking(p.getAttribute('data-route'), p.getAttribute('data-date')); };
+  list.querySelectorAll('.time-pill').forEach(function(p){
+    p.onclick = function(){ openBooking(p.getAttribute('data-route'), p.getAttribute('data-date'), p.getAttribute('data-time')); };
   });
 }
 function fmtDate(d){
@@ -949,18 +993,19 @@ function fmtDate(d){
 /* =========================================================================
    BOOKING FLOW  (FR-05, FR-06, DR-03, BR-02/03)
    ========================================================================= */
-var BK = { routeId:null, date:null, selected:[] };
+var BK = { routeId:null, date:null, time:null, selected:[] };
 var holdInterval = null;
 
-function openBooking(routeId, date){
+function openBooking(routeId, date, time){
   var u = curUser();
   if (!u){ toast('Please log in to book.','warn'); show('login'); return; }  // book-blocked when logged out
   if (u.role!=='customer'){ toast('Staff accounts browse only. Log in as a customer to book.','warn'); return; }
-  BK = { routeId:routeId, date:date, selected:[] };
   var r = routeById(routeId);
+  var chosenTime = time || (r.times && r.times[0]) || '8:00 AM';
+  BK = { routeId:routeId, date:date, time:chosenTime, selected:[] };
   document.getElementById('bk-title').textContent = r.from+' → '+r.to;
   document.getElementById('bk-meta').innerHTML =
-    '<span>Date <b>'+fmtDate(date)+'</b></span><span>Departs <b>'+esc(r.time)+'</b></span><span>Fare <b>'+money(r.price)+'</b> / seat</span>';
+    '<span>Date <b>'+fmtDate(date)+'</b></span><span>Departs <b>'+esc(chosenTime)+'</b></span><span>Fare <b>'+money(r.price)+'</b> / seat</span>';
   document.getElementById('pay-pin').value='';
   document.getElementById('pay-pin-err').textContent='';
   document.getElementById('bankDown').checked=false;
@@ -975,7 +1020,7 @@ function renderSeatGrid(){
   var grid = document.getElementById('seatGrid');
   var html='';
   for (var s=1; s<=r.seats; s++){
-    var key = seatKey(r.id, BK.date, r.time, s);
+    var key = seatKey(r.id, BK.date, BK.time, s);
     var st = S.seatState[key];
     var cls='available', disabled='', aria='available';
     if (st && st.booked){ cls='booked'; disabled='disabled'; aria='booked'; }
@@ -1003,7 +1048,7 @@ function renderSeatGrid(){
 
 function toggleSeat(s){
   var r = routeById(BK.routeId), u = curUser();
-  var key = seatKey(r.id, BK.date, r.time, s);
+  var key = seatKey(r.id, BK.date, BK.time, s);
   var idx = BK.selected.indexOf(s);
   if (idx>=0){
     // deselect -> release my hold
@@ -1046,7 +1091,7 @@ function renderSelection(){
 function earliestHoldExpiry(){
   var r = routeById(BK.routeId), u = curUser(), min=Infinity;
   BK.selected.forEach(function(s){
-    var st = S.seatState[seatKey(r.id,BK.date,r.time,s)];
+    var st = S.seatState[seatKey(r.id,BK.date,BK.time,s)];
     if (st && st.heldBy===u.id && st.heldUntil) min=Math.min(min,st.heldUntil);
   });
   return min===Infinity?0:min;
@@ -1064,7 +1109,7 @@ function startHoldTimer(){
       // auto-release (BR-03)
       sweepHolds();
       BK.selected = BK.selected.filter(function(s){
-        var st=S.seatState[seatKey(BK.routeId,BK.date,routeById(BK.routeId).time,s)];
+        var st=S.seatState[seatKey(BK.routeId,BK.date,BK.time,s)];
         return st && st.heldUntil>nowMs();
       });
       renderSeatGrid(); renderSelection();
@@ -1097,7 +1142,7 @@ function doPayment(){
   // seat still locked by me? (any expired -> treat as not locked -> EXPIRED path)
   sweepHolds();
   var allLocked = BK.selected.every(function(s){
-    var st = S.seatState[seatKey(r.id,BK.date,r.time,s)];
+    var st = S.seatState[seatKey(r.id,BK.date,BK.time,s)];
     return isSeatLocked(st, u.id, nowMs())===true;
   });
 
@@ -1107,7 +1152,7 @@ function doPayment(){
 
   if (outcome==='EXPIRED'){
     // release + fail (BR-03)
-    seatsCopy.forEach(function(s){ var k=seatKey(r.id,BK.date,r.time,s); if(S.seatState[k]&&S.seatState[k].heldBy===u.id) delete S.seatState[k]; });
+    seatsCopy.forEach(function(s){ var k=seatKey(r.id,BK.date,BK.time,s); if(S.seatState[k]&&S.seatState[k].heldBy===u.id) delete S.seatState[k]; });
     BK.selected=[]; save(); renderSeatGrid(); renderSelection();
     toast('Your seat hold expired before payment. The seats were released — please pick seats again.','err');
     return;
@@ -1122,7 +1167,7 @@ function doPayment(){
 
   var booking = {
     id: uid(), ref:'SMDC'+Math.floor(100000+Math.random()*899999),
-    userId:u.id, routeId:r.id, date:BK.date, time:r.time,
+    userId:u.id, routeId:r.id, date:BK.date, time:BK.time,
     seats:seatsCopy, total:total,
     status: outcome, // CONFIRMED or PENDING
     createdAt: clockStr()+' · '+dateStr()
@@ -1130,12 +1175,12 @@ function doPayment(){
 
   if (outcome==='CONFIRMED'){
     // mark seats booked (IR-04)
-    seatsCopy.forEach(function(s){ S.seatState[seatKey(r.id,BK.date,r.time,s)] = { booked:true, bookingId:booking.id }; });
+    seatsCopy.forEach(function(s){ S.seatState[seatKey(r.id,BK.date,BK.time,s)] = { booked:true, bookingId:booking.id }; });
     S.bookings.unshift(booking); save();
     payLog(booking.ref, 'CONFIRMED', total, u.name);
     pushMail('Booking confirmed · '+booking.ref,
       'Dear '+u.name+',\n\nYour SMDC Travels booking is CONFIRMED.\n\nRoute: '+r.from+' → '+r.to+
-      '\nDate: '+fmtDate(BK.date)+'   Departs: '+r.time+'\nSeats: '+seatsCopy.join(', ')+
+      '\nDate: '+fmtDate(BK.date)+'   Departs: '+BK.time+'\nSeats: '+seatsCopy.join(', ')+
       '\nAmount paid: '+money(total)+'\nRef: '+booking.ref+'\n\nHappy journey!\n— SMDC Travels');
     toast('Booking confirmed — receipt emailed to your Inbox.','ok');
     BK.selected=[];
@@ -1430,19 +1475,22 @@ function mgrResolvePending(bookingId){
 }
 function renderMgrSchedule(){
   var el=document.getElementById('mgr-schedule');
-  el.innerHTML='<p class="muted">Edit departure times for any route.</p><div class="table-scroll"><table><thead><tr><th>Route</th><th>Departure</th><th>Distance</th><th></th></tr></thead><tbody>'+
+  el.innerHTML='<p class="muted">Edit departure times for any route. Enter comma-separated times (e.g. <code>6:00 AM, 10:00 AM, 3:00 PM</code>).</p><div class="table-scroll"><table><thead><tr><th>Route</th><th>Departure times</th><th>Distance</th><th></th></tr></thead><tbody>'+
     S.routes.map(function(r){
+      var timesVal = esc((r.times||['8:00 AM']).join(', '));
       return '<tr><td>'+esc(r.from+' → '+r.to)+'</td>'+
-        '<td><input value="'+esc(r.time)+'" data-time="'+r.id+'" style="padding:6px;border:1px solid var(--border);border-radius:6px;width:120px"/></td>'+
+        '<td><input value="'+timesVal+'" data-times="'+r.id+'" style="padding:6px;border:1px solid var(--border);border-radius:6px;width:260px"/></td>'+
         '<td>'+distStr(r.dist)+'</td>'+
         '<td><button class="btn btn-outline btn-sm" data-savetime="'+r.id+'">Save</button></td></tr>';
     }).join('')+'</tbody></table></div>';
   el.querySelectorAll('[data-savetime]').forEach(function(x){
     x.onclick=function(){
       var id=x.getAttribute('data-savetime');
-      var inp=el.querySelector('[data-time="'+id+'"]');
-      var r=routeById(id); r.time=inp.value.trim()||r.time; save();
-      toast('Departure time updated for '+r.from+' → '+r.to+'.','ok');
+      var inp=el.querySelector('[data-times="'+id+'"]');
+      var r=routeById(id);
+      var parsed=(inp.value||'').split(',').map(function(t){return t.trim();}).filter(Boolean);
+      r.times=parsed.length?parsed:r.times; save();
+      toast('Departure times updated for '+r.from+' → '+r.to+'.','ok');
       renderManager();
     };
   });
@@ -1574,18 +1622,18 @@ function renderAdmRoutes(){
   var el=document.getElementById('adm-routes');
   el.innerHTML =
     '<div class="card"><h3>Add route / vehicle</h3>'+
-    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">'+
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">'+
       '<div class="form-row"><label class="field">From</label><input id="ar-from"/></div>'+
       '<div class="form-row"><label class="field">To</label><input id="ar-to"/></div>'+
-      '<div class="form-row"><label class="field">Departs</label><input id="ar-time" placeholder="8:00 AM"/></div>'+
+      '<div class="form-row"><label class="field">Departure times (comma-separated)</label><input id="ar-times" placeholder="8:00 AM, 1:00 PM, 6:00 PM"/></div>'+
       '<div class="form-row"><label class="field">Distance (km)</label><input id="ar-dist" type="number" placeholder="150"/></div>'+
       '<div class="form-row"><label class="field">Price (₹)</label><input id="ar-price" type="number"/></div>'+
       '<div class="form-row"><label class="field">Vehicle</label><input id="ar-veh" placeholder="SMDC-1234"/></div>'+
     '</div><button class="btn btn-primary btn-sm" id="ar-add">Add route</button></div>'+
-    '<div class="table-scroll"><table><thead><tr><th>Route</th><th>Departs</th><th>Price</th><th>Vehicle</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+    '<div class="table-scroll"><table><thead><tr><th>Route</th><th>Departures</th><th>Price</th><th>Vehicle</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
     S.routes.map(function(r){
       var activeBk = S.bookings.filter(function(b){return b.routeId===r.id && b.seats.length;}).length;
-      return '<tr><td>'+esc(r.from+' → '+r.to)+'</td><td>'+esc(r.time)+'</td><td>'+money(r.price)+'</td><td>'+esc(r.vehicle)+'</td>'+
+      return '<tr><td>'+esc(r.from+' → '+r.to)+'</td><td>'+esc((r.times||['8:00 AM']).join(', '))+'</td><td>'+money(r.price)+'</td><td>'+esc(r.vehicle)+'</td>'+
         '<td>'+(r.active?'<span class="pill ok">Active</span>':'<span class="pill cancel">Inactive</span>')+'</td>'+
         '<td style="white-space:nowrap">'+
           '<button class="btn btn-outline btn-sm" data-toggle="'+r.id+'">'+(r.active?'Deactivate':'Activate')+'</button> '+
@@ -1596,7 +1644,10 @@ function renderAdmRoutes(){
   document.getElementById('ar-add').onclick=function(){
     var from=val('ar-from'),to=val('ar-to');
     if (!from||!to){ toast('From and To are required.','err'); return; }
-    S.routes.push({ id:uid(),from:from,to:to,time:val('ar-time')||'8:00 AM',dist:parseInt(val('ar-dist'),10)||100,
+    var rawTimes=document.getElementById('ar-times').value;
+    var parsedTimes=rawTimes.split(',').map(function(t){return t.trim();}).filter(Boolean);
+    if (!parsedTimes.length) parsedTimes=['8:00 AM'];
+    S.routes.push({ id:uid(),from:from,to:to,times:parsedTimes,dist:parseInt(val('ar-dist'),10)||100,
       price:parseInt(val('ar-price'),10)||300,vehicle:val('ar-veh')||('SMDC-'+Math.floor(1000+Math.random()*8999)),
       seats:40,active:true,dates:[todayPlus(1),todayPlus(2),todayPlus(3)] });
     audit('Added route '+from+' → '+to);
