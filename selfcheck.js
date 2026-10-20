@@ -18,6 +18,22 @@ function isSeatLocked(seatState, userId, now) {
   return 'unavailable';                              // held by someone else
 }
 
+// ---- Refund on cancellation (Q-05) ----
+// Returns { refund, charged } for cancelling `seatCount` seats @ `pricePerSeat`
+// of a booking in `status`. CONFIRMED was paid -> refund the cancelled seats.
+// PENDING was never charged -> no refund, just release the hold.
+function refundFor(status, pricePerSeat, seatCount) {
+  if (status === 'CONFIRMED') return { refund: pricePerSeat * seatCount, charged: true };
+  return { refund: 0, charged: false }; // PENDING / other: hold released, nothing paid
+}
+
+// ---- Pending retry outcome (Q-02) ----
+// Re-runs the payment decision for a PENDING booking whose seats are still locked.
+// Thin wrapper over decidePayment so the retry path can't drift from the table.
+function retryPending(bankUp, pinCorrect, seatsStillLocked) {
+  return decidePayment(bankUp, pinCorrect, seatsStillLocked);
+}
+
 // ---- money formatting sanity (INR, grouping) ----
 function money(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
 
@@ -43,6 +59,18 @@ assert('Expired: past hold window', isSeatLocked({ heldBy: 'u1', heldUntil: now 
 assert('Other user hold: unavailable', isSeatLocked({ heldBy: 'u2', heldUntil: now + 60000 }, 'u1', now) === 'unavailable');
 assert('No state: not locked', isSeatLocked(undefined, 'u1', now) === false);
 assert('Other-user expired hold is free', isSeatLocked({ heldBy: 'u2', heldUntil: now - 1 }, 'u1', now) === false);
+
+// refunds (Q-05)
+assert('Refund: confirmed 2 seats @350 refunds ₹700', refundFor('CONFIRMED', 350, 2).refund === 700);
+assert('Refund: confirmed cancel is charged/refundable', refundFor('CONFIRMED', 350, 1).charged === true);
+assert('Refund: pending cancel refunds nothing', refundFor('PENDING', 650, 1).refund === 0);
+assert('Refund: pending cancel was never charged', refundFor('PENDING', 650, 1).charged === false);
+
+// pending retry (Q-02)
+assert('Retry: bank back up + right PIN + still locked -> CONFIRMED', retryPending(true, true, true) === 'CONFIRMED');
+assert('Retry: bank still down -> stays PENDING', retryPending(false, true, true) === 'PENDING');
+assert('Retry: wrong PIN -> REJECTED (stays pending, retained)', retryPending(true, false, true) === 'REJECTED');
+assert('Retry: hold lapsed -> EXPIRED', retryPending(true, true, false) === 'EXPIRED');
 
 // money
 assert('money formats 350 as rupees', money(350) === '₹350');

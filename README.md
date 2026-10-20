@@ -33,9 +33,10 @@ Use **Reset demo data** (footer) to clear `localStorage` and re-seed.
 | FR-05 | Seat map with live availability (available/held/booked) | Booking page seat grid + colour legend |
 | FR-06 | Selecting a seat locks it with a visible hold timer | Tap seat → countdown pill "Seat held: m:ss" appears |
 | FR-07 | Confirmed booking + emailed receipt | Correct PIN + bank up → Confirmed, receipt in Inbox |
+| FR-07 | Confirmed booking + animated boarding pass (SVG "QR") + print | On confirm → success screen with a styled boarding pass, deterministic SVG code, **Print ticket**; reachable later from My bookings → **View ticket** |
 | FR-08 | Customer cancellation | My bookings → Cancel entire booking / cancel single seat |
-| FR-09 | Manager: manage bookings, edit schedule times, sales report | Manager dashboard (Bookings / Schedule / Sales report tabs) |
-| FR-10 | Admin: manage routes, vehicles, user accounts | Admin console (Routes & vehicles / User accounts tabs) |
+| FR-09 | Manager: manage bookings, edit schedule times, sales report, charts, CSV | Manager dashboard — inline SVG bar + donut charts, animated stat counters, **Export CSV**, live 5-min refresh |
+| FR-10 | Admin: manage routes, vehicles, user accounts | Admin console (Routes & vehicles / User accounts / Payment log / Audit log tabs) |
 | NFR-01 | Usable, branded, responsive UI | Whole app — SMDC brand palette, mobile-responsive layout |
 | NFR-02 | Timely confirmation / notification | Toast + Inbox email on confirm/pending |
 | NFR-05 | Manager dashboard refresh indicator | "Refreshed Xs ago · auto-refreshes every 5 min" — real 5-min `setInterval`, live ticking label |
@@ -43,7 +44,7 @@ Use **Reset demo data** (footer) to clear `localStorage` and re-seed.
 | DR-03 | One source of truth for seat state across users | Shared `localStorage` seat-state keyed route+date+time+seat; others' holds show as unavailable |
 | SR-01 | Display seats remaining | Seats-left count on each date pill (Browse) |
 | SR-03 | Account lockout after repeated failures | 5 failures → lock + simulated unlock email |
-| SR-04 | Admin audit log (user, action, date, time) | Admin → Audit log; every admin mutation appends an entry |
+| SR-04 | Admin audit log + payment log; account management | Admin → Audit log (every admin mutation) **and** Admin → Payment log (every confirmed/pending/rejected/refunded event with amount, user, date, time); User accounts → **Delete account** (confirm modal + audit entry; blocked for the only admin and the signed-in account) |
 | IR-01 | Bank API integration (PIN) decision logic | Payment section; PIN `4321`; decision table in code + `selfcheck.js` |
 | IR-04 | Email receipt pushed on confirmation | Inbox receives "Booking confirmed" email |
 | BR-02 | Seat held for a fixed window (5 min) | `SEAT_HOLD_MS = 5 * 60 * 1000` |
@@ -51,8 +52,12 @@ Use **Reset demo data** (footer) to clear `localStorage` and re-seed.
 | BR-04 | Confirm only when bank up + PIN correct + seat locked | Payment decision table (`decidePayment`) |
 | BR-05 | Bank down → PENDING, hold retained, notification | "Simulate bank API down" toggle → Pending booking + email |
 | BR-06 | Block deleting a route with active bookings | Admin → Routes → Delete on a booked route is blocked ("deactivate instead") |
+| Q-02 | Pending-booking resolution workflow | My bookings → **Retry payment** on a pending booking (re-runs the decision; bank up + PIN → Confirmed + email + seats move held→booked). Manager → Bookings → **Resolve** also clears a pending booking. UI explains what PENDING means and how to clear it. |
 | Q-03 | Cancel a single seat of a multi-seat booking | My bookings → ✕ on an individual seat chip |
 | Q-04 | Audit trail of admin actions | Admin → Audit log |
+| Q-05 | Refund on cancellation | Cancelling a **confirmed** seat/booking issues a refund (booking shows "₹N refunded", a "Refund processed" email lands in the Inbox stating amount + original method, and the Manager report shows Gross − Refunds = **Net sales**). Cancelling a **pending** booking releases the hold with no charge. Refund policy note shown on the payment panel. Pure `refundFor()` logic is mirrored in `selfcheck.js`. |
+| Seat pref | Window vs aisle seat preference | Seat map marks each seat **W** (window) / **A** (aisle) with a tooltip (seat #, preference, fare); legend explains the markers |
+| UX | Advanced, interactive UI | Browse search/filter (From/To/sort + live result count + per-route occupancy bar + empty state); 3-step booking stepper + sticky summary + seat hover (#/fare); dark-mode toggle (persisted); skeleton-shimmer loading; smoother transitions and toasts; fully responsive |
 
 ## Files
 
@@ -64,4 +69,5 @@ Use **Reset demo data** (footer) to clear `localStorage` and re-seed.
 
 - Bank, email, and government-ID verification are **simulated** (prototype scope). The Inbox is a single shared demo
   mailbox so graders can see every generated message in one place.
-- Each route has one departure time per day; seats are a flat grid of 40 (2 + aisle + 2 per row).
+- Each route has one departure time per day; seats are a flat grid of 40 (2 + aisle + 2 per row). Window = the two outer columns, aisle = the two inner columns.
+- The boarding-pass "QR" is a deterministic SVG grid seeded from the booking ref (QR-styled finder corners), not a scannable code — it's a stable visual token, no library used. Charts are hand-drawn inline SVG (no chart library). Dark mode and all charts/seat colours read from the same CSS variables so both themes stay consistent.

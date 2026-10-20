@@ -36,6 +36,34 @@
     --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
     --shadow: 0 2px 8px rgba(27,42,74,.08), 0 8px 24px rgba(27,42,74,.06);
     --shadow-lg: 0 10px 40px rgba(27,42,74,.18);
+    /* chart/data colours (theme-aware) */
+    --chart-grid: #e7dcc9;
+    --bar-1: #e8822b;
+    --bar-2: #2e8b8b;
+  }
+  /* ---- dark mode (persisted) — same roles, dark surfaces ---- */
+  [data-theme="dark"] {
+    --saffron: #f0943f;
+    --saffron-dark: #e8822b;
+    --marigold: #f3a712;
+    --navy: #cdd6ea;
+    --navy-ink: #0b1220;
+    --cream: #12192a;
+    --surface: #1a2338;
+    --surface-alt: #222c44;
+    --accent: #42b3b3;
+    --text: #e7ecf5;
+    --text-soft: #9aa6bd;
+    --border: #334063;
+    --ok: #4cc27e; --ok-bg: #16311f;
+    --warn: #e2b53c; --warn-bg: #352c10;
+    --danger: #e86a55; --danger-bg: #3a1a14;
+    --held: #e2a03c; --held-bg: #352c10;
+    --shadow: 0 2px 8px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,.55);
+    --chart-grid: #334063;
+    --bar-1: #f0943f;
+    --bar-2: #42b3b3;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -270,6 +298,118 @@
   .seat-chips { display:flex; gap: var(--s2); flex-wrap: wrap; }
   .seat-chip { background: var(--accent); color:#fff; border-radius: var(--r-sm); padding: 2px 10px; font-size:.8rem; font-weight:600; }
   .footer { text-align:center; padding: var(--s6); color: var(--text-soft); font-size:.8rem; }
+
+  /* ---- theme toggle (nav) ---- */
+  .theme-toggle {
+    background: var(--surface-alt); border:1px solid var(--border); border-radius: var(--r-pill);
+    width:38px; height:38px; display:grid; place-items:center; color: var(--navy); padding:0;
+  }
+  .theme-toggle:hover { border-color: var(--saffron); }
+  .theme-toggle svg { width:18px; height:18px; }
+
+  /* ---- filter / search bar (Browse) ---- */
+  .filter-bar {
+    display:grid; gap: var(--s3); grid-template-columns: 1fr; margin-bottom: var(--s5);
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--s4); box-shadow: var(--shadow);
+  }
+  @media (min-width: 720px){ .filter-bar { grid-template-columns: 1fr 1fr 1fr auto; align-items:end; } }
+  .filter-bar .fb-field { display:flex; flex-direction:column; gap: var(--s1); }
+  .filter-bar label { font-size:.75rem; font-weight:600; color: var(--navy); text-transform:uppercase; letter-spacing:.03em; }
+  .filter-bar select {
+    padding: var(--s3); border:1.5px solid var(--border); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--text);
+  }
+  .result-count { font-size:.85rem; color: var(--text-soft); margin-bottom: var(--s4); font-weight:600; }
+
+  /* ---- occupancy bar (route cards) ---- */
+  .occ { margin-top: var(--s1); }
+  .occ-track { height:7px; border-radius: var(--r-pill); background: var(--surface-alt); overflow:hidden; border:1px solid var(--border); }
+  .occ-fill { height:100%; background: linear-gradient(90deg, var(--accent), var(--saffron)); border-radius: var(--r-pill); transition: width .5s ease; }
+  .occ-label { font-size:.72rem; color: var(--text-soft); margin-top:3px; }
+
+  /* ---- booking stepper ---- */
+  .stepper { display:flex; align-items:center; gap: var(--s2); margin-bottom: var(--s5); flex-wrap:wrap; }
+  .step { display:flex; align-items:center; gap: var(--s2); font-size:.85rem; font-weight:600; color: var(--text-soft); }
+  .step .num {
+    width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-size:.8rem;
+    background: var(--surface-alt); color: var(--text-soft); border:1.5px solid var(--border);
+  }
+  .step.active .num { background: var(--saffron); color:#fff; border-color: var(--saffron); }
+  .step.active { color: var(--navy); }
+  .step.done .num { background: var(--ok); color:#fff; border-color: var(--ok); }
+  .step-sep { flex:0 0 24px; height:2px; background: var(--border); }
+  @media (max-width:560px){ .step .lbl { display:none; } .step-sep { flex-basis:12px; } }
+
+  /* sticky selection summary */
+  @media (min-width: 760px){ .bk-summary { position: sticky; top: 84px; } }
+
+  /* seat window/aisle marker */
+  .seat .pref { position:absolute; bottom:2px; right:3px; font-size:.5rem; opacity:.6; font-weight:700; }
+  .seat { position:relative; }
+
+  /* ---- boarding pass ---- */
+  .success-wrap { text-align:center; animation: pop .4s ease; }
+  @keyframes pop { 0%{transform:scale(.92);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+  .success-check {
+    width:72px; height:72px; margin:0 auto var(--s4); border-radius:50%;
+    background: var(--ok-bg); display:grid; place-items:center;
+  }
+  .success-check svg { width:40px; height:40px; stroke: var(--ok); }
+  .success-check svg path { stroke-dasharray:48; stroke-dashoffset:48; animation: draw .5s .2s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset:0; } }
+  .boarding-pass {
+    display:grid; grid-template-columns: 1fr; max-width: 560px; margin: var(--s5) auto; text-align:left;
+    border:1px solid var(--border); border-radius: var(--r-lg); overflow:hidden; box-shadow: var(--shadow-lg);
+    background: var(--surface);
+  }
+  @media (min-width:560px){ .boarding-pass { grid-template-columns: 1fr 150px; } }
+  .bp-main { padding: var(--s5); }
+  .bp-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--s4); }
+  .bp-brand { font-family:'Poppins'; font-weight:700; color: var(--saffron-dark); letter-spacing:.02em; }
+  .bp-route { font-family:'Poppins'; font-weight:700; font-size:1.3rem; color: var(--navy); margin-bottom: var(--s3); }
+  .bp-grid { display:grid; grid-template-columns: repeat(2,1fr); gap: var(--s3) var(--s4); }
+  .bp-cell .k { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color: var(--text-soft); }
+  .bp-cell .v { font-weight:700; color: var(--navy); font-size:.95rem; }
+  .bp-stub {
+    background: var(--navy); color:#fff; padding: var(--s4); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap: var(--s2);
+    border-left: 2px dashed var(--border);
+  }
+  .bp-stub .qr { background:#fff; padding:6px; border-radius:6px; }
+  .bp-stub .ref { font-family:'Poppins'; font-weight:700; font-size:.8rem; letter-spacing:.05em; }
+
+  /* ---- SVG charts ---- */
+  .chart-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--r-lg); padding: var(--s5); box-shadow: var(--shadow); }
+  .chart-card h4 { font-family:'Poppins'; color: var(--navy); margin:0 0 var(--s4); font-size:.95rem; }
+  .charts-row { display:grid; gap: var(--s4); grid-template-columns:1fr; margin-bottom: var(--s5); }
+  @media (min-width:720px){ .charts-row { grid-template-columns: 1.6fr 1fr; } }
+  .bar-anim { transition: height .6s ease, y .6s ease; }
+
+  /* ---- skeleton shimmer ---- */
+  .skeleton { position:relative; overflow:hidden; background: var(--surface-alt); border-radius: var(--r-md); }
+  .skeleton::after {
+    content:""; position:absolute; inset:0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    animation: shimmer 1.1s infinite;
+  }
+  [data-theme="dark"] .skeleton::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent); }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+  .sk-card { height:150px; margin-bottom: var(--s4); }
+
+  /* reduced motion respect */
+  @media (prefers-reduced-motion: reduce){
+    *, *::after, *::before { animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  }
+
+  /* ---- print: isolate the boarding pass ---- */
+  @media print {
+    body > *:not(main), .proto-banner, header.site, .footer, #toasts, .stepper,
+    .btn, .success-check, .success-wrap > h2, .success-wrap > p { display:none !important; }
+    main, .view.active { padding:0 !important; margin:0 !important; }
+    .boarding-pass { box-shadow:none; border:1px solid #333; max-width:100%; page-break-inside:avoid; }
+    .bp-stub { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
 </style>
 </head>
 <body>
@@ -304,6 +444,28 @@
       <h2>Available schedules</h2>
       <span class="muted">Prices in Indian Rupees (₹). Seats remaining shown live.</span>
     </div>
+    <div class="filter-bar" role="search" aria-label="Filter schedules">
+      <div class="fb-field">
+        <label for="f-from">From</label>
+        <select id="f-from"><option value="">Any origin</option></select>
+      </div>
+      <div class="fb-field">
+        <label for="f-to">To</label>
+        <select id="f-to"><option value="">Any destination</option></select>
+      </div>
+      <div class="fb-field">
+        <label for="f-sort">Sort by</label>
+        <select id="f-sort">
+          <option value="none">Default</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="dist-asc">Distance: short to long</option>
+          <option value="dist-desc">Distance: long to short</option>
+        </select>
+      </div>
+      <button class="btn btn-outline btn-sm" id="f-clear" type="button">Clear</button>
+    </div>
+    <div class="result-count" id="resultCount" aria-live="polite"></div>
     <div id="routeList" class="grid grid-2"></div>
   </section>
 
@@ -374,6 +536,13 @@
   <!-- ======================= SEAT SELECTION / BOOKING ======================= -->
   <section id="view-booking" class="view" aria-label="Select seats">
     <button class="btn btn-outline btn-sm" id="backToBrowse" style="margin-bottom:var(--s4)">&larr; Back to schedules</button>
+    <div class="stepper" id="bkStepper" aria-label="Booking progress">
+      <div class="step active" data-step="1"><span class="num">1</span><span class="lbl">Choose seats</span></div>
+      <div class="step-sep"></div>
+      <div class="step" data-step="2"><span class="num">2</span><span class="lbl">Pay</span></div>
+      <div class="step-sep"></div>
+      <div class="step" data-step="3"><span class="num">3</span><span class="lbl">Done</span></div>
+    </div>
     <div class="card">
       <div class="section-head">
         <div>
@@ -393,10 +562,11 @@
             <span><span class="swatch sw-sel"></span>Selected</span>
             <span><span class="swatch sw-held"></span>Held (by someone)</span>
             <span><span class="swatch sw-booked"></span>Booked</span>
+            <span><b>W</b>&nbsp;= window · <b>A</b>&nbsp;= aisle</span>
           </div>
         </div>
         <div>
-          <div class="card" style="box-shadow:none;margin:0">
+          <div class="card bk-summary" style="box-shadow:none;margin:0">
             <h3>Your selection</h3>
             <div id="bk-selection" class="seat-chips"><span class="muted">No seats selected yet. Tap an available seat to hold it.</span></div>
             <div class="inline-note" id="bk-total">Total: ₹0</div>
@@ -413,10 +583,16 @@
               <span class="err-msg" id="pay-pin-err"></span>
             </div>
             <button class="btn btn-primary" id="payBtn" style="width:100%" disabled>Pay &amp; confirm booking</button>
+            <p class="form-help" style="margin-top:var(--s3)">Refund policy: cancelling a <b>confirmed</b> booking refunds the fare to your original payment method. Cancelling a <b>pending</b> booking simply releases the held seats — nothing was charged.</p>
           </div>
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ======================= TICKET / BOARDING PASS ======================= -->
+  <section id="view-ticket" class="view" aria-label="Your ticket">
+    <div class="success-wrap" id="ticketWrap"></div>
   </section>
 
   <!-- ======================= MY BOOKINGS (customer) ======================= -->
@@ -453,10 +629,12 @@
     <div class="subtabs" id="admTabs">
       <button class="active" data-tab="adm-routes">Routes &amp; vehicles</button>
       <button data-tab="adm-users">User accounts</button>
+      <button data-tab="adm-payments">Payment log</button>
       <button data-tab="adm-audit">Audit log</button>
     </div>
     <div id="adm-routes" class="adm-panel"></div>
     <div id="adm-users" class="adm-panel" style="display:none"></div>
+    <div id="adm-payments" class="adm-panel" style="display:none"></div>
     <div id="adm-audit" class="adm-panel" style="display:none"></div>
   </section>
 </main>
@@ -507,6 +685,17 @@ function isSeatLocked(seatState, userId, now) {
   if (seatState.heldBy === userId) return true;        // my live hold
   return 'unavailable';                                // held by someone else
 }
+// Refund on cancellation (Q-05) — mirrored in selfcheck.js
+function refundFor(status, pricePerSeat, seatCount) {
+  if (status === 'CONFIRMED') return { refund: pricePerSeat * seatCount, charged: true };
+  return { refund: 0, charged: false };                // PENDING: hold released, nothing paid
+}
+// Pending retry outcome (Q-02) — mirrored in selfcheck.js
+function retryPending(bankUp, pinCorrect, seatsStillLocked) {
+  return decidePayment(bankUp, pinCorrect, seatsStillLocked);
+}
+// Window/aisle label for a seat (2 + aisle + 2 layout): cols 0,3 = window; 1,2 = aisle
+function seatPref(s){ var c=(s-1)%4; return (c===0||c===3) ? 'window' : 'aisle'; }
 
 /* ---------- STATE ---------- */
 var S = null;
@@ -516,7 +705,10 @@ function uid(){ return 'id' + Math.random().toString(36).slice(2,9); }
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
 function load(){
   var raw = localStorage.getItem(LS_KEY);
-  if (raw) { try { S = JSON.parse(raw); return; } catch(e){} }
+  if (raw) { try { S = JSON.parse(raw); if (!S.payments) S.payments = [];
+    // backfill: older data had route.dur (travel time); replace with a distance in km
+    if (S.routes) S.routes.forEach(function(r){ if (r.dist==null) { r.dist = r.dur ? (parseFloat(r.dur)||2)*55 : 100; delete r.dur; } });
+    return; } catch(e){} }
   seed();
 }
 
@@ -527,15 +719,15 @@ function todayPlus(d){
 
 function seed(){
   var routes = [
-    { from:'Mumbai',    to:'Pune',       dur:'2h', price:350, time:'8:00 AM'  },
-    { from:'Delhi',     to:'Jaipur',     dur:'5h', price:650, time:'7:00 AM'  },
-    { from:'Bengaluru', to:'Chennai',    dur:'6h', price:800, time:'9:00 AM'  },
-    { from:'Mumbai',    to:'Nashik',     dur:'3h', price:280, time:'6:30 AM'  },
-    { from:'Hyderabad', to:'Vijayawada', dur:'4h', price:450, time:'8:30 AM'  },
-    { from:'Chennai',   to:'Coimbatore', dur:'5h', price:550, time:'7:30 AM'  }
+    { from:'Mumbai',    to:'Pune',       dist:150, price:350, time:'8:00 AM'  },
+    { from:'Delhi',     to:'Jaipur',     dist:280, price:650, time:'7:00 AM'  },
+    { from:'Bengaluru', to:'Chennai',    dist:350, price:800, time:'9:00 AM'  },
+    { from:'Mumbai',    to:'Nashik',     dist:170, price:280, time:'6:30 AM'  },
+    { from:'Hyderabad', to:'Vijayawada', dist:275, price:450, time:'8:30 AM'  },
+    { from:'Chennai',   to:'Coimbatore', dist:500, price:550, time:'7:30 AM'  }
   ].map(function(r){
     return {
-      id: uid(), from:r.from, to:r.to, dur:r.dur, price:r.price, time:r.time,
+      id: uid(), from:r.from, to:r.to, dist:r.dist, price:r.price, time:r.time,
       vehicle: 'SMDC-' + Math.floor(1000+Math.random()*8999),
       seats: 40, active: true,
       dates: [todayPlus(1), todayPlus(2), todayPlus(3)]
@@ -552,6 +744,7 @@ function seed(){
     bookings: [],    // { id, userId, routeId, date, seats:[], status, total, createdAt }
     inbox: [],       // simulated emails (global demo inbox)
     audit: [],       // { user, action, date, time }
+    payments: [],    // { ref, user, event, amount, date, time }  (SR-04 payment log)
     session: null    // current userId
   };
   save();
@@ -562,6 +755,8 @@ function curUser(){ return S.session ? S.users.find(function(u){return u.id===S.
 function routeById(id){ return S.routes.find(function(r){return r.id===id;}); }
 function seatKey(routeId, date, time, seat){ return routeId+'|'+date+'|'+time+'|'+seat; }
 function money(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+/* distance shown in both metric (km) and imperial (mi) */
+function distStr(km){ km = Number(km)||0; return km.toLocaleString('en-IN') + ' km · ' + Math.round(km*0.621371).toLocaleString('en-IN') + ' mi'; }
 
 function clockStr(){
   var d=new Date();
@@ -577,6 +772,12 @@ function audit(action){
 
 function pushMail(subject, body){
   S.inbox.unshift({ id:uid(), subject:subject, body:body, from:'no-reply@smdctravels.in', at: clockStr()+' · '+dateStr(), read:false });
+  save();
+}
+
+/* payment-event log (SR-04) — confirmed / pending / rejected / refunded */
+function payLog(ref, event, amount, userName){
+  S.payments.unshift({ ref:ref, user:userName||'—', event:event, amount:amount, date:dateStr(), time:clockStr() });
   save();
 }
 
@@ -614,6 +815,7 @@ function show(view){
   renderNav();
   if (view==='browse') renderRoutes();
   if (view==='bookings') renderMyBookings();
+  if (view==='booking') setStep(1);
   if (view==='inbox') renderInbox();
   if (view==='manager') renderManager();
   if (view==='admin') renderAdmin();
@@ -634,6 +836,7 @@ function renderNav(){
     items.push(btn('Log in','login'));
     items.push('<button data-nav="register">Register</button>');
   }
+  items.push(themeToggleBtn());
   el.innerHTML = items.join('');
   el.querySelectorAll('[data-nav]').forEach(function(b){
     b.onclick = function(){
@@ -642,6 +845,23 @@ function renderNav(){
       else show(n);
     };
   });
+  var tt = el.querySelector('#themeToggle');
+  if (tt) tt.onclick = toggleTheme;
+}
+var SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>';
+var MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" stroke-linejoin="round"/></svg>';
+function themeToggleBtn(){
+  var dark = document.documentElement.getAttribute('data-theme')==='dark';
+  return '<button class="theme-toggle" id="themeToggle" aria-label="'+(dark?'Switch to light mode':'Switch to dark mode')+'" title="Toggle theme">'+(dark?SUN:MOON)+'</button>';
+}
+function toggleTheme(){
+  var root=document.documentElement;
+  var dark = root.getAttribute('data-theme')==='dark';
+  if (dark){ root.removeAttribute('data-theme'); localStorage.setItem('smdc_theme','light'); }
+  else { root.setAttribute('data-theme','dark'); localStorage.setItem('smdc_theme','dark'); }
+  renderNav();
+  if (current==='manager') renderManager();  // repaint charts for theme
+  if (current==='ticket') { /* QR is theme-agnostic */ }
 }
 function inboxBadge(){
   var n = S.inbox.filter(function(m){return !m.read;}).length;
@@ -655,11 +875,52 @@ function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp
 /* =========================================================================
    BROWSE  (FR-04, SR-01)
    ========================================================================= */
+var filterState = { from:'', to:'', sort:'none' };
+
+function buildFilterOptions(){
+  var active = S.routes.filter(function(r){return r.active;});
+  var froms = [], tos = [];
+  active.forEach(function(r){ if(froms.indexOf(r.from)<0) froms.push(r.from); if(tos.indexOf(r.to)<0) tos.push(r.to); });
+  froms.sort(); tos.sort();
+  var fFrom=document.getElementById('f-from'), fTo=document.getElementById('f-to');
+  fFrom.innerHTML = '<option value="">Any origin</option>'+froms.map(function(x){return '<option'+(filterState.from===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');
+  fTo.innerHTML = '<option value="">Any destination</option>'+tos.map(function(x){return '<option'+(filterState.to===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');
+  document.getElementById('f-sort').value = filterState.sort;
+}
+
 function renderRoutes(){
   var list = document.getElementById('routeList');
-  var visible = S.routes.filter(function(r){ return r.active; });
-  if (!visible.length){ list.innerHTML = '<div class="empty">No active schedules right now.</div>'; return; }
-  list.innerHTML = visible.map(function(r){
+  buildFilterOptions();
+  // skeleton shimmer for perceived load, then paint
+  list.innerHTML = '<div class="card sk-card skeleton"></div><div class="card sk-card skeleton"></div>';
+  setTimeout(paintRoutes, 180);
+}
+
+function paintRoutes(){
+  var list = document.getElementById('routeList');
+  var count = document.getElementById('resultCount');
+  if (!list) return;
+  var rows = S.routes.filter(function(r){ return r.active; });
+  if (filterState.from) rows = rows.filter(function(r){return r.from===filterState.from;});
+  if (filterState.to)   rows = rows.filter(function(r){return r.to===filterState.to;});
+  if (filterState.sort==='price-asc') rows.sort(function(a,b){return a.price-b.price;});
+  else if (filterState.sort==='price-desc') rows.sort(function(a,b){return b.price-a.price;});
+  else if (filterState.sort==='dist-asc') rows.sort(function(a,b){return (a.dist||0)-(b.dist||0);});
+  else if (filterState.sort==='dist-desc') rows.sort(function(a,b){return (b.dist||0)-(a.dist||0);});
+
+  count.textContent = rows.length+' route'+(rows.length===1?'':'s')+' found'+
+    ((filterState.from||filterState.to)?' (filtered)':'');
+
+  if (!rows.length){
+    list.innerHTML = '<div class="empty">No schedules match your filters.<br>Try clearing the From/To selectors.</div>';
+    return;
+  }
+  list.innerHTML = rows.map(function(r){
+    // occupancy across all its dates (booked vs total capacity on offer)
+    var cap = r.seats * r.dates.length, free = 0;
+    r.dates.forEach(function(d){ free += seatsRemaining(r,d); });
+    var booked = cap - free;
+    var pct = cap? Math.round(booked/cap*100) : 0;
     var dates = r.dates.map(function(d){
       var rem = seatsRemaining(r,d);
       return '<button class="date-pill" data-route="'+r.id+'" data-date="'+d+'">'+fmtDate(d)+
@@ -668,9 +929,11 @@ function renderRoutes(){
     return '<div class="card route-card">'+
       '<div class="route-head">'+
         '<div><div class="route-path">'+esc(r.from)+' &rarr; '+esc(r.to)+'</div>'+
-        '<div class="route-meta"><span>Departs <b>'+esc(r.time)+'</b></span><span>Duration <b>'+esc(r.dur)+'</b></span><span>Bus <b>'+esc(r.vehicle)+'</b></span></div></div>'+
+        '<div class="route-meta"><span>Departs <b>'+esc(r.time)+'</b></span><span>Distance <b>'+distStr(r.dist)+'</b></span><span>Bus <b>'+esc(r.vehicle)+'</b></span></div></div>'+
         '<div class="price-tag">'+money(r.price)+'</div>'+
       '</div>'+
+      '<div class="occ"><div class="occ-track"><div class="occ-fill" style="width:'+pct+'%"></div></div>'+
+        '<div class="occ-label">'+booked+' / '+cap+' seats booked across upcoming dates ('+pct+'% full)</div></div>'+
       '<div><div class="muted" style="margin-bottom:var(--s2)">Pick a travel date:</div><div class="date-row">'+dates+'</div></div>'+
     '</div>';
   }).join('');
@@ -725,8 +988,11 @@ function renderSeatGrid(){
     // aisle gap: column 3 of 5 is the aisle (seats laid 2 + aisle + 2)
     var col = ((s-1)%4); // 0,1 | 2,3
     var gridCol = col<2 ? col+1 : col+2; // skip column 3
+    var pref = seatPref(s); // window | aisle
     html += '<button class="seat '+cls+'" '+disabled+' style="grid-column:'+gridCol+'" '+
-            'data-seat="'+s+'" aria-label="Seat '+s+', '+aria+'" aria-pressed="'+(BK.selected.indexOf(s)>=0)+'">'+s+'</button>';
+            'data-seat="'+s+'" title="Seat '+s+' · '+pref+' · '+money(r.price)+'" '+
+            'aria-label="Seat '+s+', '+pref+' seat, '+aria+'" aria-pressed="'+(BK.selected.indexOf(s)>=0)+'">'+s+
+            '<span class="pref" aria-hidden="true">'+(pref==='window'?'W':'A')+'</span></button>';
   }
   grid.innerHTML = html;
   grid.querySelectorAll('.seat').forEach(function(b){
@@ -754,13 +1020,23 @@ function toggleSeat(s){
   startHoldTimer();
 }
 
+function setStep(n){
+  document.querySelectorAll('#bkStepper .step').forEach(function(el){
+    var s=parseInt(el.getAttribute('data-step'),10);
+    el.classList.toggle('active', s===n);
+    el.classList.toggle('done', s<n);
+  });
+}
+
 function renderSelection(){
   var r = routeById(BK.routeId);
   var sel = document.getElementById('bk-selection');
   if (!BK.selected.length){
     sel.innerHTML = '<span class="muted">No seats selected yet. Tap an available seat to hold it.</span>';
     document.getElementById('payBtn').disabled = true;
+    if (current==='booking') setStep(1);
   } else {
+    if (current==='booking') setStep(2);
     sel.innerHTML = BK.selected.sort(function(a,b){return a-b;}).map(function(s){return '<span class="seat-chip">Seat '+s+'</span>';}).join('');
     document.getElementById('payBtn').disabled = false;
   }
@@ -838,6 +1114,7 @@ function doPayment(){
   }
   if (outcome==='REJECTED'){
     // wrong PIN, hold retained (BR-04)
+    payLog('—', 'REJECTED', total, u.name);
     errEl.textContent='Incorrect PIN. Your seats are still held — please try again.';
     toast('Payment rejected: incorrect PIN. Seats remain held for retry.','err');
     return;
@@ -855,16 +1132,23 @@ function doPayment(){
     // mark seats booked (IR-04)
     seatsCopy.forEach(function(s){ S.seatState[seatKey(r.id,BK.date,r.time,s)] = { booked:true, bookingId:booking.id }; });
     S.bookings.unshift(booking); save();
+    payLog(booking.ref, 'CONFIRMED', total, u.name);
     pushMail('Booking confirmed · '+booking.ref,
       'Dear '+u.name+',\n\nYour SMDC Travels booking is CONFIRMED.\n\nRoute: '+r.from+' → '+r.to+
       '\nDate: '+fmtDate(BK.date)+'   Departs: '+r.time+'\nSeats: '+seatsCopy.join(', ')+
       '\nAmount paid: '+money(total)+'\nRef: '+booking.ref+'\n\nHappy journey!\n— SMDC Travels');
     toast('Booking confirmed — receipt emailed to your Inbox.','ok');
+    BK.selected=[];
+    if (holdInterval) clearInterval(holdInterval);
+    document.getElementById('bk-timer-wrap').innerHTML='';
+    showTicket(booking.id);
+    return;
   } else { // PENDING (bank down, hold RETAINED) (BR-05)
     S.bookings.unshift(booking); save(); // seats stay held, not booked
+    payLog(booking.ref, 'PENDING', total, u.name);
     pushMail('Booking pending — payment could not be confirmed · '+booking.ref,
       'Dear '+u.name+',\n\nWe could not reach the bank to confirm your payment, so your booking is PENDING.\nYour seats ('+seatsCopy.join(', ')+') are still held while we retry.\n\nRoute: '+r.from+' → '+r.to+
-      '\nDate: '+fmtDate(BK.date)+'\nAmount: '+money(total)+'\nRef: '+booking.ref+'\n\nWe will email you once the bank responds.\n— SMDC Travels');
+      '\nDate: '+fmtDate(BK.date)+'\nAmount: '+money(total)+'\nRef: '+booking.ref+'\n\nYou can finish payment anytime from “My bookings → Retry payment”.\n— SMDC Travels');
     toast('Bank unavailable — booking saved as PENDING, seats still held. Email sent.','warn');
   }
   BK.selected=[];
@@ -874,7 +1158,74 @@ function doPayment(){
 }
 
 /* =========================================================================
-   MY BOOKINGS + CANCELLATION  (FR-08, Q-03)
+   BOARDING PASS / TICKET  (FR-07)
+   ========================================================================= */
+// deterministic pseudo-"QR": 21x21 grid of rects seeded by the booking ref.
+// ponytail: not a scannable QR — a stable visual token; swap for a QR lib if real scanning is ever needed.
+function svgQR(ref, px){
+  var N=21, cell=Math.floor((px||126)/N), size=cell*N;
+  // seed a simple LCG from the ref string
+  var seed=0; for (var i=0;i<ref.length;i++){ seed=(seed*31+ref.charCodeAt(i))>>>0; }
+  function rnd(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; }
+  var rects='';
+  for (var y=0;y<N;y++){ for (var x=0;x<N;x++){
+    // finder-pattern corners (top-left, top-right, bottom-left) for a QR look
+    var finder = (x<7&&y<7)||(x>=N-7&&y<7)||(x<7&&y>=N-7);
+    var on;
+    if (finder){
+      var fx=x<7?x:x-(N-7), fy=y<7?y:y-(N-7);
+      var ring=(fx===0||fx===6||fy===0||fy===6);
+      var core=(fx>=2&&fx<=4&&fy>=2&&fy<=4);
+      on = ring||core;
+    } else { on = rnd()>0.5; }
+    if (on) rects+='<rect x="'+(x*cell)+'" y="'+(y*cell)+'" width="'+cell+'" height="'+cell+'"/>';
+  }}
+  return '<svg class="qr" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" role="img" aria-label="Ticket code '+esc(ref)+'">'+
+    '<rect width="'+size+'" height="'+size+'" fill="#fff"/><g fill="#10192e">'+rects+'</g></svg>';
+}
+
+function boardingPassHTML(b){
+  var r=routeById(b.routeId), u=S.users.find(function(x){return x.id===b.userId;});
+  return '<div class="boarding-pass" id="boardingPass">'+
+    '<div class="bp-main">'+
+      '<div class="bp-head"><span class="bp-brand">SMDC TRAVELS</span><span class="pill ok">Confirmed</span></div>'+
+      '<div class="bp-route">'+esc(r?r.from:'—')+' &rarr; '+esc(r?r.to:'—')+'</div>'+
+      '<div class="bp-grid">'+
+        '<div class="bp-cell"><div class="k">Passenger</div><div class="v">'+esc(u?u.name:'—')+'</div></div>'+
+        '<div class="bp-cell"><div class="k">Date</div><div class="v">'+fmtDate(b.date)+'</div></div>'+
+        '<div class="bp-cell"><div class="k">Departs</div><div class="v">'+esc(b.time)+'</div></div>'+
+        '<div class="bp-cell"><div class="k">Seats</div><div class="v">'+b.seats.join(', ')+'</div></div>'+
+        '<div class="bp-cell"><div class="k">Fare paid</div><div class="v">'+money((r?r.price:0)*b.seats.length)+'</div></div>'+
+        '<div class="bp-cell"><div class="k">Bus</div><div class="v">'+esc(r?r.vehicle:'—')+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="bp-stub">'+svgQR(b.ref,120)+'<div class="ref">'+esc(b.ref)+'</div></div>'+
+  '</div>';
+}
+
+function showTicket(bookingId){
+  var b=S.bookings.find(function(x){return x.id===bookingId;});
+  if (!b){ show('bookings'); return; }
+  var wrap=document.getElementById('ticketWrap');
+  wrap.innerHTML =
+    '<div class="success-check"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>'+
+    '<h2>Booking confirmed!</h2>'+
+    '<p class="muted">Your seats are reserved. A receipt is in your Inbox. Show this pass when boarding.</p>'+
+    boardingPassHTML(b)+
+    '<div style="display:flex;gap:var(--s3);justify-content:center;flex-wrap:wrap;margin-top:var(--s4)">'+
+      '<button class="btn btn-primary" id="tkPrint">Print ticket</button>'+
+      '<button class="btn btn-outline" id="tkBookings">View my bookings</button>'+
+      '<button class="btn btn-outline" id="tkBrowse">Book another trip</button>'+
+    '</div>';
+  if (current==='booking') setStep(3);
+  show('ticket'); setStep(3);
+  document.getElementById('tkPrint').onclick=function(){ window.print(); };
+  document.getElementById('tkBookings').onclick=function(){ show('bookings'); };
+  document.getElementById('tkBrowse').onclick=function(){ show('browse'); };
+}
+
+/* =========================================================================
+   MY BOOKINGS + CANCELLATION  (FR-08, Q-03, Q-05)
    ========================================================================= */
 function renderMyBookings(){
   var u = curUser();
@@ -900,38 +1251,122 @@ function renderMyBookings(){
         pill+
       '</div>'+
       (b.seats.length? '<div class="seat-chips" style="margin-bottom:var(--s3)">'+seatBtns+'</div>' : '<div class="muted" style="margin-bottom:var(--s3)">All seats cancelled.</div>')+
-      '<div class="inline-note">Total: '+money((r?r.price:0)*b.seats.length)+' · '+b.seats.length+' active seat(s)</div>'+
-      (b.seats.length && b.status!=='CANCELLED' ? '<button class="btn btn-outline btn-sm" data-cancel-all="'+b.id+'" style="margin-top:var(--s3)">Cancel entire booking</button>':'')+
+      '<div class="inline-note">Total: '+money((r?r.price:0)*b.seats.length)+' · '+b.seats.length+' active seat(s)'+
+        (b.refunded? ' · <b style="color:var(--ok)">'+money(b.refunded)+' refunded</b>':'')+'</div>'+
+      (b.status==='PENDING'&&b.seats.length ? '<div class="inline-note" style="background:var(--warn-bg);color:var(--warn)">Payment is <b>pending</b> — the bank didn\'t confirm. Your seats are still held. Use <b>Retry payment</b> to finish, or cancel to release them (no charge).</div>':'')+
+      '<div style="display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s3)">'+
+        (b.status==='CONFIRMED'&&b.seats.length ? '<button class="btn btn-outline btn-sm" data-ticket="'+b.id+'">View ticket</button>':'')+
+        (b.status==='PENDING'&&b.seats.length ? '<button class="btn btn-primary btn-sm" data-retry="'+b.id+'">Retry payment</button>':'')+
+        (b.seats.length && b.status!=='CANCELLED' ? '<button class="btn btn-outline btn-sm" data-cancel-all="'+b.id+'">Cancel entire booking</button>':'')+
+      '</div>'+
     '</div>';
   }).join('');
   el.querySelectorAll('[data-cancel-seat]').forEach(function(x){
     x.onclick=function(){ var p=x.getAttribute('data-cancel-seat').split(':'); cancelSeat(p[0], parseInt(p[1],10)); };
   });
   el.querySelectorAll('[data-cancel-all]').forEach(function(x){
-    x.onclick=function(){ confirmModal('Cancel entire booking?','This releases all seats back to available inventory.', function(){ cancelBooking(x.getAttribute('data-cancel-all')); }); };
+    x.onclick=function(){ confirmModal('Cancel entire booking?','This releases all seats back to inventory.'+(bk(x,'data-cancel-all').status==='CONFIRMED'?' A full refund will be issued to your original payment method.':' This booking is pending — no charge was made.'), function(){ cancelBooking(x.getAttribute('data-cancel-all')); }); };
+  });
+  el.querySelectorAll('[data-ticket]').forEach(function(x){
+    x.onclick=function(){ showTicket(x.getAttribute('data-ticket')); };
+  });
+  el.querySelectorAll('[data-retry]').forEach(function(x){
+    x.onclick=function(){ retryPendingBooking(x.getAttribute('data-retry')); };
   });
 }
+function bk(x, attr){ var id=x.getAttribute(attr); return S.bookings.find(function(b){return b.id===id;})||{}; }
 
-/* cancel a single seat of a multi-seat booking (Q-03) */
+/* cancel a single seat of a multi-seat booking (Q-03, Q-05 refund) */
 function cancelSeat(bookingId, seat){
   var b = S.bookings.find(function(x){return x.id===bookingId;});
   if (!b) return;
   var r = routeById(b.routeId);
+  var statusBefore = b.status;
   var key = seatKey(b.routeId, b.date, b.time, seat);
   delete S.seatState[key];                 // seat back to available inventory
   b.seats = b.seats.filter(function(s){return s!==seat;});
+  var rf = refundFor(statusBefore, r?r.price:0, 1);   // one seat
+  applyRefund(b, rf, [seat], statusBefore);
   if (!b.seats.length) b.status='CANCELLED';
   save();
-  toast('Seat '+seat+' cancelled and returned to inventory.','ok');
+  if (rf.charged) toast('Seat '+seat+' cancelled · '+money(rf.refund)+' refunded to your payment method.','ok');
+  else toast('Seat '+seat+' released. No charge was made (booking was pending).','ok');
   renderMyBookings();
 }
 function cancelBooking(bookingId){
   var b = S.bookings.find(function(x){return x.id===bookingId;});
   if (!b) return;
+  var r = routeById(b.routeId);
+  var statusBefore = b.status;
+  var seatsCancelled = b.seats.slice();
+  var rf = refundFor(statusBefore, r?r.price:0, seatsCancelled.length);
   b.seats.forEach(function(s){ delete S.seatState[seatKey(b.routeId,b.date,b.time,s)]; });
-  b.seats=[]; b.status='CANCELLED'; save();
-  toast('Booking cancelled. Seats returned to inventory.','ok');
+  b.seats=[];
+  applyRefund(b, rf, seatsCancelled, statusBefore);
+  b.status='CANCELLED'; save();
+  if (rf.charged) toast('Booking cancelled · '+money(rf.refund)+' refunded to your payment method.','ok');
+  else toast('Pending booking cancelled. Seats released — nothing was charged.','ok');
   renderMyBookings();
+}
+
+/* shared refund side-effects (Q-05): accumulate on booking, log, email */
+function applyRefund(b, rf, seats, statusBefore){
+  if (rf.charged && rf.refund>0){
+    b.refunded = (b.refunded||0) + rf.refund;
+    payLog(b.ref, 'REFUNDED', rf.refund, (curUser()||{}).name);
+    pushMail('Refund processed · '+b.ref,
+      'Dear '+((curUser()||{}).name||'passenger')+',\n\nA refund of '+money(rf.refund)+' for seat(s) '+seats.join(', ')+
+      ' on booking '+b.ref+' has been processed to your original payment method.\n\nRefunds typically appear within 5–7 business days.\n— SMDC Travels');
+  } else {
+    // pending cancellation: hold released, no charge
+    pushMail('Pending booking cancelled · '+b.ref,
+      'Dear '+((curUser()||{}).name||'passenger')+',\n\nYour pending booking '+b.ref+' was cancelled before payment cleared. '+
+      'Seat(s) '+seats.join(', ')+' have been released. No amount was charged, so no refund is required.\n— SMDC Travels');
+  }
+}
+
+/* resolve a PENDING booking by re-running payment (Q-02) */
+function retryPendingBooking(bookingId){
+  var b = S.bookings.find(function(x){return x.id===bookingId;});
+  if (!b || b.status!=='PENDING') return;
+  var r = routeById(b.routeId), u = curUser();
+  // seats still held by me?
+  sweepHolds();
+  var stillLocked = b.seats.every(function(s){
+    var st = S.seatState[seatKey(b.routeId,b.date,b.time,s)];
+    return st && (st.booked || isSeatLocked(st, u.id, nowMs())===true);
+  });
+  var pinCorrect = true;                               // retry uses the saved/assumed PIN
+  var bankUp = !confirmBankDownForRetry();             // reuse the bank-down sim on retry
+  var outcome = retryPending(bankUp, pinCorrect, stillLocked);
+  var total = (r?r.price:0)*b.seats.length;
+
+  if (outcome==='EXPIRED'){
+    b.seats.forEach(function(s){ delete S.seatState[seatKey(b.routeId,b.date,b.time,s)]; });
+    b.seats=[]; b.status='CANCELLED'; save();
+    toast('The seat hold expired before payment could be retried. Seats released.','err');
+    renderMyBookings(); return;
+  }
+  if (outcome==='PENDING'){
+    payLog(b.ref,'PENDING',total,u.name);
+    toast('Bank still unavailable — booking is still PENDING. Try again shortly.','warn');
+    renderMyBookings(); return;
+  }
+  // CONFIRMED: move held seats to booked
+  b.seats.forEach(function(s){ S.seatState[seatKey(b.routeId,b.date,b.time,s)] = { booked:true, bookingId:b.id }; });
+  b.status='CONFIRMED'; save();
+  payLog(b.ref,'CONFIRMED',total,u.name);
+  pushMail('Booking confirmed · '+b.ref,
+    'Dear '+u.name+',\n\nGood news — your previously pending payment cleared and booking '+b.ref+' is now CONFIRMED.\n\nRoute: '+(r?r.from+' → '+r.to:'—')+
+    '\nDate: '+fmtDate(b.date)+'   Departs: '+b.time+'\nSeats: '+b.seats.join(', ')+'\nAmount paid: '+money(total)+'\n\nHappy journey!\n— SMDC Travels');
+  toast('Payment retried successfully — booking CONFIRMED.','ok');
+  showTicket(b.id);
+}
+// retry reuses the "simulate bank down" checkbox if the user is still on/near the booking screen;
+// otherwise the bank is assumed up (the realistic case: retry later when bank recovered).
+function confirmBankDownForRetry(){
+  var cb=document.getElementById('bankDown');
+  return cb ? cb.checked && current==='booking' : false;
 }
 
 /* =========================================================================
@@ -965,19 +1400,41 @@ function renderMgrBookings(){
       return '<tr><td>'+esc(b.ref)+'</td><td>'+esc(u?u.name:'—')+'</td><td>'+esc(r?r.from+'→'+r.to:'—')+'</td><td>'+fmtDate(b.date)+'</td>'+
         '<td>'+b.seats.join(', ')+'</td><td>'+money((r?r.price:0)*b.seats.length)+'</td>'+
         '<td>'+(b.status==='CONFIRMED'?'<span class="pill ok">Confirmed</span>':'<span class="pill pending">Pending</span>')+'</td>'+
-        '<td><button class="btn btn-danger btn-sm" data-mcancel="'+b.id+'">Cancel</button></td></tr>';
+        '<td style="white-space:nowrap">'+
+          (b.status==='PENDING'?'<button class="btn btn-primary btn-sm" data-mresolve="'+b.id+'">Resolve</button> ':'')+
+          '<button class="btn btn-danger btn-sm" data-mcancel="'+b.id+'">Cancel</button></td></tr>';
     }).join('')+'</tbody></table></div>';
   el.querySelectorAll('[data-mcancel]').forEach(function(x){
-    x.onclick=function(){ confirmModal('Cancel this booking?','Seats return to inventory.', function(){ cancelBooking(x.getAttribute('data-mcancel')); renderManager(); }); };
+    x.onclick=function(){ confirmModal('Cancel this booking?','Seats return to inventory. Confirmed bookings are refunded; pending ones are released with no charge.', function(){ cancelBooking(x.getAttribute('data-mcancel')); renderManager(); }); };
+  });
+  el.querySelectorAll('[data-mresolve]').forEach(function(x){
+    x.onclick=function(){ mgrResolvePending(x.getAttribute('data-mresolve')); };
+  });
+}
+
+/* manager resolves a pending booking: confirm payment manually (Q-02) */
+function mgrResolvePending(bookingId){
+  var b = S.bookings.find(function(x){return x.id===bookingId;});
+  if (!b || b.status!=='PENDING') return;
+  var r=routeById(b.routeId), u=S.users.find(function(x){return x.id===b.userId;});
+  confirmModal('Confirm this pending booking?','Mark '+b.ref+' as paid/confirmed and book the held seats.', function(){
+    b.seats.forEach(function(s){ S.seatState[seatKey(b.routeId,b.date,b.time,s)] = { booked:true, bookingId:b.id }; });
+    b.status='CONFIRMED'; save();
+    payLog(b.ref,'CONFIRMED',(r?r.price:0)*b.seats.length,u?u.name:'—');
+    pushMail('Booking confirmed · '+b.ref,
+      'Dear '+(u?u.name:'passenger')+',\n\nOur team confirmed your pending payment. Booking '+b.ref+' is now CONFIRMED.\nSeats: '+b.seats.join(', ')+'\n— SMDC Travels');
+    audit('Resolved pending booking '+b.ref+' → confirmed');
+    toast('Pending booking '+b.ref+' confirmed.','ok');
+    renderManager();
   });
 }
 function renderMgrSchedule(){
   var el=document.getElementById('mgr-schedule');
-  el.innerHTML='<p class="muted">Edit departure times for any route.</p><div class="table-scroll"><table><thead><tr><th>Route</th><th>Departure</th><th>Duration</th><th></th></tr></thead><tbody>'+
+  el.innerHTML='<p class="muted">Edit departure times for any route.</p><div class="table-scroll"><table><thead><tr><th>Route</th><th>Departure</th><th>Distance</th><th></th></tr></thead><tbody>'+
     S.routes.map(function(r){
       return '<tr><td>'+esc(r.from+' → '+r.to)+'</td>'+
         '<td><input value="'+esc(r.time)+'" data-time="'+r.id+'" style="padding:6px;border:1px solid var(--border);border-radius:6px;width:120px"/></td>'+
-        '<td>'+esc(r.dur)+'</td>'+
+        '<td>'+distStr(r.dist)+'</td>'+
         '<td><button class="btn btn-outline btn-sm" data-savetime="'+r.id+'">Save</button></td></tr>';
     }).join('')+'</tbody></table></div>';
   el.querySelectorAll('[data-savetime]').forEach(function(x){
@@ -990,23 +1447,115 @@ function renderMgrSchedule(){
     };
   });
 }
+function salesSummary(){
+  var confirmed = S.bookings.filter(function(b){return b.status==='CONFIRMED'&&b.seats.length;});
+  var gross = confirmed.reduce(function(a,b){ var r=routeById(b.routeId); return a+(r?r.price:0)*b.seats.length; },0);
+  var refunds = S.bookings.reduce(function(a,b){ return a+(b.refunded||0); },0);
+  var pax = confirmed.reduce(function(a,b){return a+b.seats.length;},0);
+  var pending = S.bookings.filter(function(b){return b.status==='PENDING'&&b.seats.length;}).length;
+  return { confirmed:confirmed, gross:gross, refunds:refunds, net:gross-refunds, pax:pax, pending:pending };
+}
+
 function renderMgrReport(){
   var el=document.getElementById('mgr-report');
-  var confirmed = S.bookings.filter(function(b){return b.status==='CONFIRMED'&&b.seats.length;});
-  var totalRev = confirmed.reduce(function(a,b){ var r=routeById(b.routeId); return a+(r?r.price:0)*b.seats.length; },0);
-  var pax = confirmed.reduce(function(a,b){return a+b.seats.length;},0);
+  var sm = salesSummary();
   el.innerHTML='<div class="stat-grid" style="margin-bottom:var(--s5)">'+
-    '<div class="stat"><div class="n">'+confirmed.length+'</div><div class="l">Confirmed bookings</div></div>'+
-    '<div class="stat"><div class="n">'+pax+'</div><div class="l">Passengers</div></div>'+
-    '<div class="stat"><div class="n">'+money(totalRev)+'</div><div class="l">Total sales</div></div>'+
+    '<div class="stat"><div class="n" data-count="'+sm.confirmed.length+'">0</div><div class="l">Confirmed bookings</div></div>'+
+    '<div class="stat"><div class="n" data-count="'+sm.pax+'">0</div><div class="l">Passengers</div></div>'+
+    '<div class="stat"><div class="n" data-count="'+sm.gross+'" data-money="1">₹0</div><div class="l">Gross sales</div></div>'+
+    '<div class="stat"><div class="n" data-count="'+sm.refunds+'" data-money="1">₹0</div><div class="l">Refunds</div></div>'+
+    '<div class="stat"><div class="n" data-count="'+sm.net+'" data-money="1">₹0</div><div class="l">Net sales</div></div>'+
     '</div>'+
-    '<h3>Passenger / sales report</h3>'+
-    (confirmed.length? '<div class="table-scroll"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Seats</th><th>Amount</th></tr></thead><tbody>'+
-      confirmed.map(function(b){ var r=routeById(b.routeId),u=S.users.find(function(x){return x.id===b.userId;});
+    '<div class="charts-row">'+
+      '<div class="chart-card"><h4>Net sales by route</h4>'+salesByRouteChart()+'</div>'+
+      '<div class="chart-card"><h4>Confirmed vs pending</h4>'+confirmedPendingChart()+'</div>'+
+    '</div>'+
+    '<div class="section-head"><h3 style="margin:0">Passenger / sales report</h3>'+
+      '<button class="btn btn-outline btn-sm" id="csvExport">Export CSV</button></div>'+
+    (sm.confirmed.length? '<div class="table-scroll"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Seats</th><th>Amount</th></tr></thead><tbody>'+
+      sm.confirmed.map(function(b){ var r=routeById(b.routeId),u=S.users.find(function(x){return x.id===b.userId;});
         return '<tr><td>'+esc(b.ref)+'</td><td>'+esc(u?u.name:'—')+'</td><td>'+esc(r?r.from+'→'+r.to:'—')+'</td><td>'+fmtDate(b.date)+'</td><td>'+b.seats.join(', ')+'</td><td>'+money((r?r.price:0)*b.seats.length)+'</td></tr>';
       }).join('')+
-      '<tr><td colspan="5" style="text-align:right;font-weight:700">Total</td><td style="font-weight:700">'+money(totalRev)+'</td></tr>'+
+      '<tr><td colspan="5" style="text-align:right;font-weight:700">Gross</td><td style="font-weight:700">'+money(sm.gross)+'</td></tr>'+
+      (sm.refunds? '<tr><td colspan="5" style="text-align:right;color:var(--danger)">Less refunds</td><td style="color:var(--danger)">−'+money(sm.refunds)+'</td></tr>'+
+                   '<tr><td colspan="5" style="text-align:right;font-weight:700">Net</td><td style="font-weight:700">'+money(sm.net)+'</td></tr>':'')+
       '</tbody></table></div>' : '<div class="empty">No confirmed sales yet.</div>');
+  animateCounters(el);
+  var csv=el.querySelector('#csvExport'); if(csv) csv.onclick=exportSalesCSV;
+}
+
+/* animated stat counters */
+function animateCounters(scope){
+  scope.querySelectorAll('[data-count]').forEach(function(n){
+    var target=parseInt(n.getAttribute('data-count'),10)||0, isMoney=n.getAttribute('data-money');
+    var start=performance.now(), dur=600;
+    function step(t){
+      var p=Math.min(1,(t-start)/dur), val=Math.round(target*(0.5-Math.cos(p*Math.PI)/2));
+      n.textContent = isMoney? money(val): val;
+      if (p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/* horizontal-ish bar chart: net sales per route (SVG, no library) */
+function salesByRouteChart(){
+  var rows = S.routes.map(function(r){
+    var gross = S.bookings.filter(function(b){return b.routeId===r.id&&b.status==='CONFIRMED';})
+      .reduce(function(a,b){return a+r.price*b.seats.length;},0);
+    var refunds = S.bookings.filter(function(b){return b.routeId===r.id;})
+      .reduce(function(a,b){return a+(b.refunded||0);},0);
+    return { label:r.from+'→'+r.to, val:Math.max(0,gross-refunds) };
+  }).filter(function(x){return x.val>0;}).sort(function(a,b){return b.val-a.val;}).slice(0,6);
+  if (!rows.length) return '<div class="empty" style="padding:var(--s5)">No sales to chart yet.</div>';
+  var max=Math.max.apply(null,rows.map(function(x){return x.val;}));
+  var W=380, rowH=34, barMax=200, pad=8, H=rows.length*rowH+pad*2;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Net sales by route bar chart">';
+  rows.forEach(function(x,i){
+    var y=pad+i*rowH, w=Math.round(x.val/max*barMax);
+    svg+='<text x="0" y="'+(y+13)+'" font-size="11" fill="var(--text-soft)">'+esc(x.label)+'</text>';
+    svg+='<rect class="bar-anim" x="128" y="'+(y+2)+'" width="'+w+'" height="16" rx="4" fill="var(--bar-1)"/>';
+    svg+='<text x="'+(128+w+6)+'" y="'+(y+15)+'" font-size="11" font-weight="700" fill="var(--navy)">'+money(x.val)+'</text>';
+  });
+  return svg+'</svg>';
+}
+
+/* donut-ish split: confirmed vs pending seats */
+function confirmedPendingChart(){
+  var conf=0, pend=0;
+  S.bookings.forEach(function(b){ if(b.status==='CONFIRMED') conf+=b.seats.length; else if(b.status==='PENDING') pend+=b.seats.length; });
+  var total=conf+pend;
+  if (!total) return '<div class="empty" style="padding:var(--s5)">No bookings yet.</div>';
+  var r=52, c=2*Math.PI*r, cx=70, cy=70;
+  var confLen=c*conf/total;
+  var svg='<svg viewBox="0 0 220 140" width="100%" role="img" aria-label="Confirmed versus pending seats">';
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--bar-2)" stroke-width="18"/>';
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--bar-1)" stroke-width="18" '+
+       'stroke-dasharray="'+confLen+' '+c+'" transform="rotate(-90 '+cx+' '+cy+')"/>';
+  svg+='<text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" font-size="20" font-weight="700" fill="var(--navy)">'+total+'</text>';
+  svg+='<text x="'+cx+'" y="'+(cy+16)+'" text-anchor="middle" font-size="10" fill="var(--text-soft)">seats</text>';
+  svg+='<g font-size="12"><rect x="150" y="48" width="12" height="12" rx="2" fill="var(--bar-1)"/><text x="168" y="58" fill="var(--text)">Confirmed '+conf+'</text>'+
+       '<rect x="150" y="72" width="12" height="12" rx="2" fill="var(--bar-2)"/><text x="168" y="82" fill="var(--text)">Pending '+pend+'</text></g>';
+  return svg+'</svg>';
+}
+
+/* CSV export of the confirmed sales report (Blob download) */
+function exportSalesCSV(){
+  var sm=salesSummary();
+  var rows=[['Ref','Passenger','Route','Date','Seats','Amount']];
+  sm.confirmed.forEach(function(b){
+    var r=routeById(b.routeId), u=S.users.find(function(x){return x.id===b.userId;});
+    rows.push([b.ref, u?u.name:'', r?r.from+' to '+r.to:'', b.date, b.seats.join(' '), (r?r.price:0)*b.seats.length]);
+  });
+  rows.push([]);
+  rows.push(['Gross','','','','',sm.gross]);
+  rows.push(['Refunds','','','','',sm.refunds]);
+  rows.push(['Net','','','','',sm.net]);
+  var csv=rows.map(function(row){ return row.map(function(c){ var v=String(c); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(','); }).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'}); var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='smdc-sales-report-'+dateStr()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('Sales report exported as CSV.','ok');
 }
 function updateRefreshLabel(){
   var el=document.getElementById('mgrRefresh');
@@ -1019,7 +1568,7 @@ function updateRefreshLabel(){
 /* =========================================================================
    ADMIN  (FR-10, BR-06, SR-03, SR-04, Q-04)
    ========================================================================= */
-function renderAdmin(){ renderAdmRoutes(); renderAdmUsers(); renderAdmAudit(); }
+function renderAdmin(){ renderAdmRoutes(); renderAdmUsers(); renderAdmPayments(); renderAdmAudit(); }
 
 function renderAdmRoutes(){
   var el=document.getElementById('adm-routes');
@@ -1029,7 +1578,7 @@ function renderAdmRoutes(){
       '<div class="form-row"><label class="field">From</label><input id="ar-from"/></div>'+
       '<div class="form-row"><label class="field">To</label><input id="ar-to"/></div>'+
       '<div class="form-row"><label class="field">Departs</label><input id="ar-time" placeholder="8:00 AM"/></div>'+
-      '<div class="form-row"><label class="field">Duration</label><input id="ar-dur" placeholder="3h"/></div>'+
+      '<div class="form-row"><label class="field">Distance (km)</label><input id="ar-dist" type="number" placeholder="150"/></div>'+
       '<div class="form-row"><label class="field">Price (₹)</label><input id="ar-price" type="number"/></div>'+
       '<div class="form-row"><label class="field">Vehicle</label><input id="ar-veh" placeholder="SMDC-1234"/></div>'+
     '</div><button class="btn btn-primary btn-sm" id="ar-add">Add route</button></div>'+
@@ -1047,7 +1596,7 @@ function renderAdmRoutes(){
   document.getElementById('ar-add').onclick=function(){
     var from=val('ar-from'),to=val('ar-to');
     if (!from||!to){ toast('From and To are required.','err'); return; }
-    S.routes.push({ id:uid(),from:from,to:to,time:val('ar-time')||'8:00 AM',dur:val('ar-dur')||'3h',
+    S.routes.push({ id:uid(),from:from,to:to,time:val('ar-time')||'8:00 AM',dist:parseInt(val('ar-dist'),10)||100,
       price:parseInt(val('ar-price'),10)||300,vehicle:val('ar-veh')||('SMDC-'+Math.floor(1000+Math.random()*8999)),
       seats:40,active:true,dates:[todayPlus(1),todayPlus(2),todayPlus(3)] });
     audit('Added route '+from+' → '+to);
@@ -1073,19 +1622,58 @@ function renderAdmRoutes(){
   });
 }
 
+function adminCount(){ return S.users.filter(function(u){return u.role==='admin';}).length; }
+
 function renderAdmUsers(){
   var el=document.getElementById('adm-users');
   el.innerHTML='<div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
     S.users.map(function(u){
+      var onlyAdmin = u.role==='admin' && adminCount()===1;
+      var isSelf = S.session===u.id;
       return '<tr><td>'+esc(u.name)+'</td><td>'+esc(u.email)+'</td><td>'+esc(u.role)+'</td>'+
         '<td>'+(u.locked?'<span class="pill fail">Locked</span>':'<span class="pill ok">Active</span>')+(u.failed?' <span class="muted">('+u.failed+' fails)</span>':'')+'</td>'+
-        '<td>'+(u.locked?'<button class="btn btn-primary btn-sm" data-unlock="'+u.id+'">Unlock</button>':'<span class="muted">—</span>')+'</td></tr>';
-    }).join('')+'</tbody></table></div>';
+        '<td style="white-space:nowrap">'+
+          (u.locked?'<button class="btn btn-primary btn-sm" data-unlock="'+u.id+'">Unlock</button> ':'')+
+          '<button class="btn btn-danger btn-sm" data-deluser="'+u.id+'"'+((onlyAdmin||isSelf)?' disabled title="'+(isSelf?'You cannot delete the account you are signed in as':'Cannot delete the only admin account')+'"':'')+'>Delete</button>'+
+        '</td></tr>';
+    }).join('')+'</tbody></table></div>'+
+    '<p class="form-help">Deleting an account removes the user; their past bookings stay in the records as “(user removed)”. The only admin and the signed-in account cannot be deleted.</p>';
   el.querySelectorAll('[data-unlock]').forEach(function(x){
     x.onclick=function(){ var u=S.users.find(function(z){return z.id===x.getAttribute('data-unlock');});
       u.locked=false; u.failed=0; audit('Unlocked account '+u.email); save();
       toast('Account '+u.email+' unlocked.','ok'); renderAdmin(); };
   });
+  el.querySelectorAll('[data-deluser]').forEach(function(x){
+    if (x.disabled) return;
+    x.onclick=function(){
+      var u=S.users.find(function(z){return z.id===x.getAttribute('data-deluser');});
+      if (!u) return;
+      if (u.role==='admin' && adminCount()===1){ toast('Cannot delete the only admin account.','err'); return; }
+      if (S.session===u.id){ toast('You cannot delete the account you are signed in as.','err'); return; }
+      confirmModal('Delete account?','Permanently remove '+u.name+' ('+u.email+'). This cannot be undone.', function(){
+        S.users = S.users.filter(function(z){return z.id!==u.id;});
+        audit('Deleted account '+u.email); save();
+        toast('Account '+u.email+' deleted.','ok'); renderAdmin();
+      });
+    };
+  });
+}
+
+function renderAdmPayments(){
+  var el=document.getElementById('adm-payments');
+  if (!S.payments.length){ el.innerHTML='<div class="empty">No payment events yet. Confirmed, pending, rejected and refunded payments appear here.</div>'; return; }
+  function evPill(e){
+    if (e==='CONFIRMED') return '<span class="pill ok">Confirmed</span>';
+    if (e==='PENDING')   return '<span class="pill pending">Pending</span>';
+    if (e==='REJECTED')  return '<span class="pill fail">Rejected</span>';
+    if (e==='REFUNDED')  return '<span class="pill cancel">Refunded</span>';
+    return esc(e);
+  }
+  el.innerHTML='<p class="muted">Every payment event — confirmed, pending, rejected, refunded (SR-04). Admin-only.</p>'+
+    '<div class="table-scroll"><table><thead><tr><th>Date</th><th>Time</th><th>Ref</th><th>User</th><th>Event</th><th>Amount</th></tr></thead><tbody>'+
+    S.payments.map(function(p){
+      return '<tr><td>'+esc(p.date)+'</td><td>'+esc(p.time)+'</td><td>'+esc(p.ref)+'</td><td>'+esc(p.user)+'</td><td>'+evPill(p.event)+'</td><td>'+(p.event==='REFUNDED'?'−':'')+money(p.amount)+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
 }
 
 function renderAdmAudit(){
@@ -1163,6 +1751,12 @@ function wire(){
   document.getElementById('backToBrowse').onclick=function(){ if(holdInterval)clearInterval(holdInterval); show('browse'); };
   document.getElementById('payBtn').onclick=doPayment;
 
+  // browse filters
+  document.getElementById('f-from').onchange=function(){ filterState.from=this.value; paintRoutes(); };
+  document.getElementById('f-to').onchange=function(){ filterState.to=this.value; paintRoutes(); };
+  document.getElementById('f-sort').onchange=function(){ filterState.sort=this.value; paintRoutes(); };
+  document.getElementById('f-clear').onclick=function(){ filterState={from:'',to:'',sort:'none'}; buildFilterOptions(); paintRoutes(); };
+
   // login
   document.getElementById('loginForm').onsubmit=function(e){
     e.preventDefault();
@@ -1215,7 +1809,7 @@ function wire(){
     b.onclick=function(){
       document.getElementById('admTabs').querySelectorAll('button').forEach(function(x){x.classList.remove('active');});
       b.classList.add('active');
-      ['adm-routes','adm-users','adm-audit'].forEach(function(id){ document.getElementById(id).style.display=(id===b.getAttribute('data-tab'))?'block':'none'; });
+      ['adm-routes','adm-users','adm-payments','adm-audit'].forEach(function(id){ document.getElementById(id).style.display=(id===b.getAttribute('data-tab'))?'block':'none'; });
     };
   });
 
@@ -1235,6 +1829,7 @@ function wire(){
 /* =========================================================================
    BOOT
    ========================================================================= */
+if (localStorage.getItem('smdc_theme')==='dark') document.documentElement.setAttribute('data-theme','dark');
 load();
 wire();
 renderNav();
