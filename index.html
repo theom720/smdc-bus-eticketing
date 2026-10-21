@@ -636,11 +636,13 @@
     <h2>Admin console</h2>
     <div class="subtabs" id="admTabs">
       <button class="active" data-tab="adm-routes">Routes &amp; vehicles</button>
+      <button data-tab="adm-bookings">Bookings</button>
       <button data-tab="adm-users">User accounts</button>
       <button data-tab="adm-payments">Payment log</button>
       <button data-tab="adm-audit">Audit log</button>
     </div>
     <div id="adm-routes" class="adm-panel"></div>
+    <div id="adm-bookings" class="adm-panel" style="display:none"></div>
     <div id="adm-users" class="adm-panel" style="display:none"></div>
     <div id="adm-payments" class="adm-panel" style="display:none"></div>
     <div id="adm-audit" class="adm-panel" style="display:none"></div>
@@ -1557,13 +1559,13 @@ function salesByRouteChart(){
   }).filter(function(x){return x.val>0;}).sort(function(a,b){return b.val-a.val;}).slice(0,6);
   if (!rows.length) return '<div class="empty" style="padding:var(--s5)">No sales to chart yet.</div>';
   var max=Math.max.apply(null,rows.map(function(x){return x.val;}));
-  var W=380, rowH=34, barMax=200, pad=8, H=rows.length*rowH+pad*2;
+  var W=460, rowH=34, barMax=200, pad=8, H=rows.length*rowH+pad*2;
   var svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Net sales by route bar chart">';
   rows.forEach(function(x,i){
     var y=pad+i*rowH, w=Math.round(x.val/max*barMax);
     svg+='<text x="0" y="'+(y+13)+'" font-size="11" fill="var(--text-soft)">'+esc(x.label)+'</text>';
-    svg+='<rect class="bar-anim" x="128" y="'+(y+2)+'" width="'+w+'" height="16" rx="4" fill="var(--bar-1)"/>';
-    svg+='<text x="'+(128+w+6)+'" y="'+(y+15)+'" font-size="11" font-weight="700" fill="var(--navy)">'+money(x.val)+'</text>';
+    svg+='<rect class="bar-anim" x="160" y="'+(y+2)+'" width="'+w+'" height="16" rx="4" fill="var(--bar-1)"/>';
+    svg+='<text x="'+(160+w+6)+'" y="'+(y+15)+'" font-size="11" font-weight="700" fill="var(--navy)">'+money(x.val)+'</text>';
   });
   return svg+'</svg>';
 }
@@ -1576,7 +1578,7 @@ function confirmedPendingChart(){
   if (!total) return '<div class="empty" style="padding:var(--s5)">No bookings yet.</div>';
   var r=52, c=2*Math.PI*r, cx=70, cy=70;
   var confLen=c*conf/total;
-  var svg='<svg viewBox="0 0 220 140" width="100%" role="img" aria-label="Confirmed versus pending seats">';
+  var svg='<svg viewBox="0 0 310 140" width="100%" role="img" aria-label="Confirmed versus pending seats">';
   svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--bar-2)" stroke-width="18"/>';
   svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--bar-1)" stroke-width="18" '+
        'stroke-dasharray="'+confLen+' '+c+'" transform="rotate(-90 '+cx+' '+cy+')"/>';
@@ -1616,16 +1618,56 @@ function updateRefreshLabel(){
 /* =========================================================================
    ADMIN  (FR-10, BR-06, SR-03, SR-04, Q-04)
    ========================================================================= */
-function renderAdmin(){ renderAdmRoutes(); renderAdmUsers(); renderAdmPayments(); renderAdmAudit(); }
+function renderAdmin(){ renderAdmRoutes(); renderAdmBookings(); renderAdmUsers(); renderAdmPayments(); renderAdmAudit(); }
+
+/* admin booking override (SR-02): cancel or force-confirm any booking; every override is audited */
+function renderAdmBookings(){
+  var el=document.getElementById('adm-bookings');
+  var active = S.bookings.filter(function(b){return b.seats.length;});
+  el.innerHTML='<p class="muted">Admin booking override (SR-02). Cancel or force-confirm any booking — every override is written to the audit log.</p>'+
+    (!active.length? '<div class="empty">No active bookings.</div>' :
+    '<div class="table-scroll"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Seats</th><th>Total</th><th>Status</th><th>Override</th></tr></thead><tbody>'+
+    active.map(function(b){
+      var r=routeById(b.routeId), u=S.users.find(function(x){return x.id===b.userId;});
+      return '<tr><td>'+esc(b.ref)+'</td><td>'+esc(u?u.name:'—')+'</td><td>'+esc(r?r.from+'→'+r.to:'—')+'</td><td>'+fmtDate(b.date)+'</td>'+
+        '<td>'+b.seats.join(', ')+'</td><td>'+money((r?r.price:0)*b.seats.length)+'</td>'+
+        '<td>'+(b.status==='CONFIRMED'?'<span class="pill ok">Confirmed</span>':'<span class="pill pending">Pending</span>')+'</td>'+
+        '<td style="white-space:nowrap">'+
+          (b.status==='PENDING'?'<button class="btn btn-primary btn-sm" data-aresolve="'+b.id+'">Force confirm</button> ':'')+
+          '<button class="btn btn-danger btn-sm" data-acancel="'+b.id+'">Cancel</button></td></tr>';
+    }).join('')+'</tbody></table></div>');
+  el.querySelectorAll('[data-acancel]').forEach(function(x){
+    x.onclick=function(){ var id=x.getAttribute('data-acancel'); var b=S.bookings.find(function(z){return z.id===id;});
+      confirmModal('Override — cancel this booking?','Admin override: seats return to inventory; a confirmed booking is refunded. This action is logged to the audit trail.', function(){
+        cancelBooking(id); audit('Override — cancelled booking '+(b?b.ref:id)); renderAdmin(); }); };
+  });
+  el.querySelectorAll('[data-aresolve]').forEach(function(x){
+    x.onclick=function(){ adminForceConfirm(x.getAttribute('data-aresolve')); };
+  });
+}
+function adminForceConfirm(bookingId){
+  var b=S.bookings.find(function(x){return x.id===bookingId;});
+  if(!b||b.status!=='PENDING') return;
+  var r=routeById(b.routeId), u=S.users.find(function(x){return x.id===b.userId;});
+  confirmModal('Override — force-confirm this booking?','Admin override: mark '+b.ref+' as paid/confirmed and book the held seats. This action is logged to the audit trail.', function(){
+    b.seats.forEach(function(s){ S.seatState[seatKey(b.routeId,b.date,b.time,s)]={booked:true,bookingId:b.id}; });
+    b.status='CONFIRMED'; save();
+    payLog(b.ref,'CONFIRMED',(r?r.price:0)*b.seats.length,u?u.name:'—');
+    pushMail('Booking confirmed · '+b.ref,'Dear '+(u?u.name:'passenger')+',\n\nAn administrator confirmed your booking '+b.ref+'. It is now CONFIRMED.\nSeats: '+b.seats.join(', ')+'\n— SMDC Travels');
+    audit('Override — force-confirmed booking '+b.ref);
+    toast('Booking '+b.ref+' force-confirmed.','ok');
+    renderAdmin();
+  });
+}
 
 function renderAdmRoutes(){
   var el=document.getElementById('adm-routes');
   el.innerHTML =
     '<div class="card"><h3>Add route / vehicle</h3>'+
-    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">'+
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:end">'+
       '<div class="form-row"><label class="field">From</label><input id="ar-from"/></div>'+
       '<div class="form-row"><label class="field">To</label><input id="ar-to"/></div>'+
-      '<div class="form-row"><label class="field">Departure times (comma-separated)</label><input id="ar-times" placeholder="8:00 AM, 1:00 PM, 6:00 PM"/></div>'+
+      '<div class="form-row" style="grid-column:span 2"><label class="field">Departure times</label><input id="ar-times" placeholder="8:00 AM, 1:00 PM, 6:00 PM"/></div>'+
       '<div class="form-row"><label class="field">Distance (km)</label><input id="ar-dist" type="number" placeholder="150"/></div>'+
       '<div class="form-row"><label class="field">Price (₹)</label><input id="ar-price" type="number"/></div>'+
       '<div class="form-row"><label class="field">Vehicle</label><input id="ar-veh" placeholder="SMDC-1234"/></div>'+
@@ -1860,7 +1902,7 @@ function wire(){
     b.onclick=function(){
       document.getElementById('admTabs').querySelectorAll('button').forEach(function(x){x.classList.remove('active');});
       b.classList.add('active');
-      ['adm-routes','adm-users','adm-payments','adm-audit'].forEach(function(id){ document.getElementById(id).style.display=(id===b.getAttribute('data-tab'))?'block':'none'; });
+      ['adm-routes','adm-bookings','adm-users','adm-payments','adm-audit'].forEach(function(id){ document.getElementById(id).style.display=(id===b.getAttribute('data-tab'))?'block':'none'; });
     };
   });
 
